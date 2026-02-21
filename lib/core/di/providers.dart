@@ -34,6 +34,11 @@ import '../../domain/usecases/add_purchase_item.dart';
 import '../../domain/usecases/update_purchase_item.dart';
 import '../../domain/usecases/remove_purchase_item.dart';
 import '../../domain/usecases/complete_purchase.dart';
+import '../../domain/usecases/get_consumption_by_category.dart';
+import '../../domain/usecases/get_top_products.dart';
+import '../../domain/usecases/get_purchase_frequency.dart';
+import '../../domain/usecases/get_consumption_by_product.dart';
+import '../../domain/usecases/search_products.dart';
 
 final categoryLocalDsProvider = Provider<CategoryLocalDs>((_) => CategoryLocalDs());
 final productLocalDsProvider = Provider<ProductLocalDs>((_) => ProductLocalDs());
@@ -51,6 +56,9 @@ final pantryRepositoryProvider = Provider<PantryRepository>(
 );
 final purchaseRepositoryProvider = Provider<PurchaseRepository>(
   (ref) => PurchaseRepositoryImpl(ref.watch(purchaseLocalDsProvider)),
+);
+final purchaseItemRepositoryProvider = Provider<PurchaseItemRepository>(
+  (ref) => PurchaseItemRepositoryImpl(ref.watch(purchaseLocalDsProvider)),
 );
 
 final getAllCategoriesProvider = Provider((ref) => GetAllCategories(ref.watch(categoryRepositoryProvider)));
@@ -75,10 +83,16 @@ final getAllPurchasesProvider = Provider((ref) => GetAllPurchases(ref.watch(purc
 final getPurchaseByIdProvider = Provider((ref) => GetPurchaseById(ref.watch(purchaseRepositoryProvider)));
 final createPurchaseProvider = Provider((ref) => CreatePurchase(ref.watch(purchaseRepositoryProvider)));
 final deletePurchaseProvider = Provider((ref) => DeletePurchase(ref.watch(purchaseRepositoryProvider)));
-final addPurchaseItemProvider = Provider((ref) => AddPurchaseItem(ref.watch(purchaseRepositoryProvider)));
-final updatePurchaseItemProvider = Provider((ref) => UpdatePurchaseItem(ref.watch(purchaseRepositoryProvider)));
-final removePurchaseItemProvider = Provider((ref) => RemovePurchaseItem(ref.watch(purchaseRepositoryProvider)));
+final addPurchaseItemProvider = Provider((ref) => AddPurchaseItem(ref.watch(purchaseItemRepositoryProvider)));
+final updatePurchaseItemProvider = Provider((ref) => UpdatePurchaseItem(ref.watch(purchaseItemRepositoryProvider)));
+final removePurchaseItemProvider = Provider((ref) => RemovePurchaseItem(ref.watch(purchaseItemRepositoryProvider)));
 final completePurchaseProvider = Provider((ref) => CompletePurchase(
   ref.watch(purchaseRepositoryProvider),
   ref.watch(pantryRepositoryProvider),
 ));
+
+final getConsumptionByCategoryProvider = Provider((ref) => GetConsumptionByCategory(ref.watch(purchaseRepositoryProvider)));
+final getTopProductsProvider = Provider((ref) => GetTopProducts(ref.watch(purchaseRepositoryProvider)));
+final getPurchaseFrequencyProvider = Provider((ref) => GetPurchaseFrequency(ref.watch(purchaseRepositoryProvider)));
+final getConsumptionByProductProvider = Provider((ref) => GetConsumptionByProduct(ref.watch(purchaseRepositoryProvider)));
+final searchProductsProvider = Provider((ref) => SearchProducts(ref.watch(productRepositoryProvider)));

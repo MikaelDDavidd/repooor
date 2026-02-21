@@ -37,4 +37,10 @@ abstract final class AppTextStyles {
     fontWeight: FontWeight.w600,
     color: Colors.white,
   );
+
+  static const chartLabel = TextStyle(
+    fontSize: 11,
+    fontWeight: FontWeight.bold,
+    color: Colors.white,
+  );
 }

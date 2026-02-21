@@ -3,133 +3,79 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../providers/pantry_providers.dart';
-import '../providers/product_providers.dart';
+import '../../domain/entities/purchase.dart';
 import '../providers/purchase_providers.dart';
+import '../purchase/purchase_detail_page.dart';
+import 'widgets/greeting_header.dart';
+import 'widgets/pantry_summary_card.dart';
+import 'widgets/purchase_summary_card.dart';
+import 'widgets/low_stock_list.dart';
+import 'widgets/missing_items_card.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
-  String _greeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return 'Bom dia';
-    if (hour < 18) return 'Boa tarde';
-    return 'Boa noite';
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final products = ref.watch(productsProvider);
-    final pantry = ref.watch(pantryProvider);
-    final lowStock = ref.watch(lowStockCountProvider);
-    final purchases = ref.watch(purchasesProvider);
-
-    return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          const SizedBox(height: 8),
-          Text(_greeting(), style: AppTextStyles.heading1),
-          const SizedBox(height: 4),
-          Text('Gerencie sua despensa', style: AppTextStyles.bodySecondary),
-          const SizedBox(height: 24),
-          _QuickAccessCard(
-            icon: Icons.kitchen_outlined,
-            title: 'Despensa',
-            subtitle: pantry.when(
-              data: (items) {
-                final low = lowStock.valueOrNull ?? 0;
-                if (items.isEmpty) return 'Nenhum item';
-                return '${items.length} itens${low > 0 ? ' · $low em falta' : ''}';
-              },
-              loading: () => 'Carregando...',
-              error: (_, _) => 'Erro',
-            ),
-            onTap: () => context.go('/pantry'),
-          ),
-          const SizedBox(height: 12),
-          _QuickAccessCard(
-            icon: Icons.shopping_cart_outlined,
-            title: 'Compras',
-            subtitle: purchases.when(
-              data: (p) => p.isEmpty ? 'Nenhuma compra' : '${p.length} registradas',
-              loading: () => 'Carregando...',
-              error: (_, _) => 'Erro',
-            ),
-            onTap: () => context.go('/purchases'),
-          ),
-          const SizedBox(height: 12),
-          _QuickAccessCard(
-            icon: Icons.inventory_2_outlined,
-            title: 'Produtos',
-            subtitle: products.when(
-              data: (p) => '${p.length} cadastrados',
-              loading: () => 'Carregando...',
-              error: (_, _) => 'Erro',
-            ),
-            onTap: () => context.push('/products'),
-          ),
-          const SizedBox(height: 12),
-          _QuickAccessCard(
-            icon: Icons.category_outlined,
-            title: 'Categorias',
-            subtitle: 'Gerenciar categorias',
-            onTap: () => context.push('/categories'),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Home'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () => context.push('/search'),
           ),
         ],
       ),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            const GreetingHeader(),
+            const SizedBox(height: 24),
+            const PantrySummaryCard(),
+            const SizedBox(height: 12),
+            const PurchaseSummaryCard(),
+            const SizedBox(height: 24),
+            _buildNewPurchaseButton(context, ref),
+            const SizedBox(height: 24),
+            const LowStockList(),
+            const SizedBox(height: 16),
+            const MissingItemsCard(),
+          ],
+        ),
+      ),
     );
   }
-}
 
-class _QuickAccessCard extends StatelessWidget {
-  const _QuickAccessCard({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: AppColors.primary),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: AppTextStyles.heading2),
-                    const SizedBox(height: 2),
-                    Text(subtitle, style: AppTextStyles.caption),
-                  ],
-                ),
-              ),
-              const Icon(Icons.arrow_forward_ios, size: 16, color: AppColors.textSecondary),
-            ],
+  Widget _buildNewPurchaseButton(BuildContext context, WidgetRef ref) {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton.icon(
+        onPressed: () => _createPurchase(context, ref),
+        icon: const Icon(Icons.add_shopping_cart, color: AppColors.onPrimary),
+        label: Text('Nova compra', style: AppTextStyles.button),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
         ),
       ),
     );
+  }
+
+  Future<void> _createPurchase(BuildContext context, WidgetRef ref) async {
+    final id = await ref
+        .read(purchasesProvider.notifier)
+        .createNew(PurchaseType.main);
+    if (context.mounted) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => PurchaseDetailPage(purchaseId: id),
+        ),
+      );
+    }
   }
 }

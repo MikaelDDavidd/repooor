@@ -4,7 +4,7 @@ import '../repositories/purchase_repository.dart';
 class UpdatePurchaseItem {
   UpdatePurchaseItem(this._repository);
 
-  final PurchaseRepository _repository;
+  final PurchaseItemRepository _repository;
 
   Future<void> call(PurchaseItem item) => _repository.updateItem(item);
 }

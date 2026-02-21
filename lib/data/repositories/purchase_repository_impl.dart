@@ -40,6 +40,41 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
   }
 
   @override
+  Future<void> delete(String id) async {
+    await _dataSource.delete(id);
+  }
+
+  @override
+  Future<List<Purchase>> getByDateRange(DateTime start, DateTime end) async {
+    final models = await _dataSource.getByDateRange(
+      start.toIso8601String(),
+      end.toIso8601String(),
+    );
+    final purchases = <Purchase>[];
+    for (final model in models) {
+      final itemModels = await _dataSource.getItemsByPurchaseId(model.id);
+      final items = itemModels.map((m) => m.toEntity()).toList();
+      purchases.add(model.toEntity(items: items));
+    }
+    return purchases;
+  }
+
+  @override
+  Future<List<PurchaseItem>> getAllItemsByDateRange(DateTime start, DateTime end) async {
+    final models = await _dataSource.getAllItemsByDateRange(
+      start.toIso8601String(),
+      end.toIso8601String(),
+    );
+    return models.map((m) => m.toEntity()).toList();
+  }
+}
+
+class PurchaseItemRepositoryImpl implements PurchaseItemRepository {
+  PurchaseItemRepositoryImpl(this._dataSource);
+
+  final PurchaseLocalDs _dataSource;
+
+  @override
   Future<void> addItem(PurchaseItem item) async {
     await _dataSource.insertItem(PurchaseItemModel.fromEntity(item));
   }
@@ -52,10 +87,5 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
   @override
   Future<void> updateItem(PurchaseItem item) async {
     await _dataSource.updateItem(PurchaseItemModel.fromEntity(item));
-  }
-
-  @override
-  Future<void> delete(String id) async {
-    await _dataSource.delete(id);
   }
 }

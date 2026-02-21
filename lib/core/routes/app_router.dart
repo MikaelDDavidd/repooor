@@ -3,8 +3,11 @@ import '../../presentation/home/home_page.dart';
 import '../../presentation/pantry/pantry_page.dart';
 import '../../presentation/purchase/purchase_page.dart';
 import '../../presentation/analytics/analytics_page.dart';
+import '../../presentation/analytics/category_detail_page.dart';
+import '../../presentation/analytics/product_detail_page.dart';
 import '../../presentation/products/products_page.dart';
 import '../../presentation/categories/categories_page.dart';
+import '../../presentation/search/search_page.dart';
 import '../routes/shell_scaffold.dart';
 
 final appRouter = GoRouter(
@@ -46,6 +49,22 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/categories',
       builder: (context, state) => const CategoriesPage(),
+    ),
+    GoRoute(
+      path: '/search',
+      builder: (context, state) => const SearchPage(),
+    ),
+    GoRoute(
+      path: '/analytics/category/:id',
+      builder: (context, state) => CategoryDetailPage(
+        categoryId: state.pathParameters['id']!,
+      ),
+    ),
+    GoRoute(
+      path: '/analytics/product/:id',
+      builder: (context, state) => ProductDetailPage(
+        productId: state.pathParameters['id']!,
+      ),
     ),
   ],
 );

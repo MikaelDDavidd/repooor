@@ -69,4 +69,26 @@ class PurchaseLocalDs {
     final db = await _db;
     await db.update(_tableItems, model.toMap(), where: 'id = ?', whereArgs: [model.id]);
   }
+
+  Future<List<PurchaseModel>> getByDateRange(String start, String end) async {
+    final db = await _db;
+    final maps = await db.query(
+      _tablePurchases,
+      where: 'date >= ? AND date < ?',
+      whereArgs: [start, end],
+      orderBy: 'date DESC',
+    );
+    return maps.map(PurchaseModel.fromMap).toList();
+  }
+
+  Future<List<PurchaseItemModel>> getAllItemsByDateRange(String start, String end) async {
+    final db = await _db;
+    final maps = await db.rawQuery(
+      'SELECT pi.* FROM $_tableItems pi '
+      'INNER JOIN $_tablePurchases p ON pi.purchase_id = p.id '
+      'WHERE p.date >= ? AND p.date < ?',
+      [start, end],
+    );
+    return maps.map(PurchaseItemModel.fromMap).toList();
+  }
 }
