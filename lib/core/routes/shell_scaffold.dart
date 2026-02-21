@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../theme/app_colors.dart';
+import '../../presentation/providers/pantry_providers.dart';
 
-class ShellScaffold extends StatelessWidget {
+class ShellScaffold extends ConsumerWidget {
   const ShellScaffold({super.key, required this.child});
 
   final Widget child;
@@ -28,30 +31,45 @@ class ShellScaffold extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final index = _currentIndex(context);
+    final lowStock = ref.watch(lowStockCountProvider);
+    final lowCount = lowStock.valueOrNull ?? 0;
+
     return Scaffold(
       body: child,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: index,
         onTap: (i) => _onTap(context, i),
-        items: const [
-          BottomNavigationBarItem(
+        items: [
+          const BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.kitchen_outlined),
-            activeIcon: Icon(Icons.kitchen),
+            icon: lowCount > 0
+                ? Badge(
+                    label: Text('$lowCount'),
+                    backgroundColor: AppColors.error,
+                    child: const Icon(Icons.kitchen_outlined),
+                  )
+                : const Icon(Icons.kitchen_outlined),
+            activeIcon: lowCount > 0
+                ? Badge(
+                    label: Text('$lowCount'),
+                    backgroundColor: AppColors.error,
+                    child: const Icon(Icons.kitchen),
+                  )
+                : const Icon(Icons.kitchen),
             label: 'Despensa',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.shopping_cart_outlined),
             activeIcon: Icon(Icons.shopping_cart),
             label: 'Compras',
           ),
-          BottomNavigationBarItem(
+          const BottomNavigationBarItem(
             icon: Icon(Icons.bar_chart_outlined),
             activeIcon: Icon(Icons.bar_chart),
             label: 'Análise',

@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../providers/category_providers.dart';
+import '../providers/pantry_providers.dart';
 import '../providers/product_providers.dart';
+import '../providers/purchase_providers.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -18,8 +19,10 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final categories = ref.watch(categoriesProvider);
     final products = ref.watch(productsProvider);
+    final pantry = ref.watch(pantryProvider);
+    final lowStock = ref.watch(lowStockCountProvider);
+    final purchases = ref.watch(purchasesProvider);
 
     return SafeArea(
       child: ListView(
@@ -30,6 +33,32 @@ class HomePage extends ConsumerWidget {
           const SizedBox(height: 4),
           Text('Gerencie sua despensa', style: AppTextStyles.bodySecondary),
           const SizedBox(height: 24),
+          _QuickAccessCard(
+            icon: Icons.kitchen_outlined,
+            title: 'Despensa',
+            subtitle: pantry.when(
+              data: (items) {
+                final low = lowStock.valueOrNull ?? 0;
+                if (items.isEmpty) return 'Nenhum item';
+                return '${items.length} itens${low > 0 ? ' · $low em falta' : ''}';
+              },
+              loading: () => 'Carregando...',
+              error: (_, _) => 'Erro',
+            ),
+            onTap: () => context.go('/pantry'),
+          ),
+          const SizedBox(height: 12),
+          _QuickAccessCard(
+            icon: Icons.shopping_cart_outlined,
+            title: 'Compras',
+            subtitle: purchases.when(
+              data: (p) => p.isEmpty ? 'Nenhuma compra' : '${p.length} registradas',
+              loading: () => 'Carregando...',
+              error: (_, _) => 'Erro',
+            ),
+            onTap: () => context.go('/purchases'),
+          ),
+          const SizedBox(height: 12),
           _QuickAccessCard(
             icon: Icons.inventory_2_outlined,
             title: 'Produtos',
@@ -44,26 +73,8 @@ class HomePage extends ConsumerWidget {
           _QuickAccessCard(
             icon: Icons.category_outlined,
             title: 'Categorias',
-            subtitle: categories.when(
-              data: (c) => '${c.length} categorias',
-              loading: () => 'Carregando...',
-              error: (_, _) => 'Erro',
-            ),
+            subtitle: 'Gerenciar categorias',
             onTap: () => context.push('/categories'),
-          ),
-          const SizedBox(height: 12),
-          _QuickAccessCard(
-            icon: Icons.kitchen_outlined,
-            title: 'Despensa',
-            subtitle: 'Em breve',
-            onTap: () => context.go('/pantry'),
-          ),
-          const SizedBox(height: 12),
-          _QuickAccessCard(
-            icon: Icons.shopping_cart_outlined,
-            title: 'Nova Compra',
-            subtitle: 'Em breve',
-            onTap: () => context.go('/purchases'),
           ),
         ],
       ),
