@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/pantry_item.dart';
 import '../../domain/entities/purchase.dart';
 import 'pantry_providers.dart';
+import 'product_providers.dart';
 import 'purchase_providers.dart';
 
 class PantrySummary {
@@ -43,6 +44,11 @@ final purchaseSummaryProvider = FutureProvider<PurchaseSummary?>((ref) async {
     type: latest.type,
     itemCount: latest.totalItems,
   );
+});
+
+final hasProductsProvider = FutureProvider<bool>((ref) async {
+  final products = await ref.watch(productsProvider.future);
+  return products.isNotEmpty;
 });
 
 final topLowStockProvider = FutureProvider<List<PantryItem>>((ref) async {

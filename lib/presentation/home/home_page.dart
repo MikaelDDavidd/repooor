@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../domain/entities/purchase.dart';
+import '../providers/home_providers.dart';
 import '../providers/purchase_providers.dart';
 import '../purchase/purchase_detail_page.dart';
+import 'widgets/first_use_banner.dart';
 import 'widgets/greeting_header.dart';
 import 'widgets/pantry_summary_card.dart';
 import 'widgets/purchase_summary_card.dart';
@@ -17,6 +19,8 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final hasProducts = ref.watch(hasProductsProvider).valueOrNull ?? true;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
@@ -25,6 +29,10 @@ class HomePage extends ConsumerWidget {
             icon: const Icon(Icons.search),
             onPressed: () => context.push('/search'),
           ),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () => context.push('/settings'),
+          ),
         ],
       ),
       body: SafeArea(
@@ -32,6 +40,10 @@ class HomePage extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           children: [
             const GreetingHeader(),
+            if (!hasProducts) ...[
+              const SizedBox(height: 16),
+              const FirstUseBanner(),
+            ],
             const SizedBox(height: 24),
             const PantrySummaryCard(),
             const SizedBox(height: 12),

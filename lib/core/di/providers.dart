@@ -3,14 +3,20 @@ import '../../data/datasources/category_local_ds.dart';
 import '../../data/datasources/product_local_ds.dart';
 import '../../data/datasources/pantry_local_ds.dart';
 import '../../data/datasources/purchase_local_ds.dart';
+import '../../data/datasources/preferences_local_ds.dart';
+import '../../data/datasources/data_export_local_ds.dart';
 import '../../data/repositories/category_repository_impl.dart';
 import '../../data/repositories/product_repository_impl.dart';
 import '../../data/repositories/pantry_repository_impl.dart';
 import '../../data/repositories/purchase_repository_impl.dart';
+import '../../data/repositories/data_export_repository_impl.dart';
+import '../../data/repositories/preferences_repository_impl.dart';
 import '../../domain/repositories/category_repository.dart';
+import '../../domain/repositories/preferences_repository.dart';
 import '../../domain/repositories/product_repository.dart';
 import '../../domain/repositories/pantry_repository.dart';
 import '../../domain/repositories/purchase_repository.dart';
+import '../../domain/repositories/data_export_repository.dart';
 import '../../domain/usecases/get_all_categories.dart';
 import '../../domain/usecases/create_category.dart';
 import '../../domain/usecases/update_category.dart';
@@ -39,11 +45,18 @@ import '../../domain/usecases/get_top_products.dart';
 import '../../domain/usecases/get_purchase_frequency.dart';
 import '../../domain/usecases/get_consumption_by_product.dart';
 import '../../domain/usecases/search_products.dart';
+import '../../domain/usecases/export_data.dart';
+import '../../domain/usecases/import_data.dart';
+import '../../domain/usecases/clear_all_data.dart';
+import '../../domain/usecases/get_has_seen_onboarding.dart';
+import '../../domain/usecases/set_has_seen_onboarding.dart';
 
 final categoryLocalDsProvider = Provider<CategoryLocalDs>((_) => CategoryLocalDs());
 final productLocalDsProvider = Provider<ProductLocalDs>((_) => ProductLocalDs());
 final pantryLocalDsProvider = Provider<PantryLocalDs>((_) => PantryLocalDs());
 final purchaseLocalDsProvider = Provider<PurchaseLocalDs>((_) => PurchaseLocalDs());
+final preferencesLocalDsProvider = Provider<PreferencesLocalDs>((_) => PreferencesLocalDs());
+final dataExportLocalDsProvider = Provider<DataExportLocalDs>((_) => DataExportLocalDs());
 
 final categoryRepositoryProvider = Provider<CategoryRepository>(
   (ref) => CategoryRepositoryImpl(ref.watch(categoryLocalDsProvider)),
@@ -96,3 +109,18 @@ final getTopProductsProvider = Provider((ref) => GetTopProducts(ref.watch(purcha
 final getPurchaseFrequencyProvider = Provider((ref) => GetPurchaseFrequency(ref.watch(purchaseRepositoryProvider)));
 final getConsumptionByProductProvider = Provider((ref) => GetConsumptionByProduct(ref.watch(purchaseRepositoryProvider)));
 final searchProductsProvider = Provider((ref) => SearchProducts(ref.watch(productRepositoryProvider)));
+
+final dataExportRepositoryProvider = Provider<DataExportRepository>(
+  (ref) => DataExportRepositoryImpl(ref.watch(dataExportLocalDsProvider)),
+);
+
+final exportDataProvider = Provider((ref) => ExportData(ref.watch(dataExportRepositoryProvider)));
+final importDataProvider = Provider((ref) => ImportData(ref.watch(dataExportRepositoryProvider)));
+final clearAllDataProvider = Provider((ref) => ClearAllData(ref.watch(dataExportRepositoryProvider)));
+
+final preferencesRepositoryProvider = Provider<PreferencesRepository>(
+  (ref) => PreferencesRepositoryImpl(ref.watch(preferencesLocalDsProvider)),
+);
+
+final getHasSeenOnboardingProvider = Provider((ref) => GetHasSeenOnboarding(ref.watch(preferencesRepositoryProvider)));
+final setHasSeenOnboardingProvider = Provider((ref) => SetHasSeenOnboarding(ref.watch(preferencesRepositoryProvider)));

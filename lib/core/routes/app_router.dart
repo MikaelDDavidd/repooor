@@ -8,11 +8,26 @@ import '../../presentation/analytics/product_detail_page.dart';
 import '../../presentation/products/products_page.dart';
 import '../../presentation/categories/categories_page.dart';
 import '../../presentation/search/search_page.dart';
+import '../../presentation/splash/splash_page.dart';
+import '../../presentation/onboarding/onboarding_page.dart';
+import '../../presentation/settings/settings_page.dart';
 import '../routes/shell_scaffold.dart';
 
 final appRouter = GoRouter(
-  initialLocation: '/home',
+  initialLocation: '/splash',
   routes: [
+    GoRoute(
+      path: '/splash',
+      builder: (context, state) => const SplashPage(),
+    ),
+    GoRoute(
+      path: '/onboarding',
+      builder: (context, state) => const OnboardingPage(),
+    ),
+    GoRoute(
+      path: '/settings',
+      builder: (context, state) => const SettingsPage(),
+    ),
     ShellRoute(
       builder: (context, state, child) => ShellScaffold(child: child),
       routes: [

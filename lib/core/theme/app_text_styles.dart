@@ -35,12 +35,12 @@ abstract final class AppTextStyles {
   static const button = TextStyle(
     fontSize: 16,
     fontWeight: FontWeight.w600,
-    color: Colors.white,
+    color: AppColors.onPrimary,
   );
 
   static const chartLabel = TextStyle(
     fontSize: 11,
     fontWeight: FontWeight.bold,
-    color: Colors.white,
+    color: AppColors.onPrimary,
   );
 }
