@@ -51,9 +51,8 @@ class LowStockList extends ConsumerWidget {
   }
 
   Widget _buildTile(PantryItem item, AsyncValue products) {
-    final product = products.valueOrNull
-        ?.where((p) => p.id == item.productId)
-        .firstOrNull;
+    final productMatches = products.valueOrNull?.where((p) => p.id == item.productId);
+    final product = (productMatches != null && productMatches.isNotEmpty) ? productMatches.first : null;
     final stockColor = item.isLowStock ? AppColors.error : AppColors.warning;
 
     return Padding(

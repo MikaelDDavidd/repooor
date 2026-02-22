@@ -61,9 +61,8 @@ class MissingItemsCard extends ConsumerWidget {
   }
 
   Widget _buildRow(PantryItem item, AsyncValue products) {
-    final product = products.valueOrNull
-        ?.where((p) => p.id == item.productId)
-        .firstOrNull;
+    final productMatches = products.valueOrNull?.where((p) => p.id == item.productId);
+    final product = (productMatches != null && productMatches.isNotEmpty) ? productMatches.first : null;
     final color = item.stockRatio < 0.5 ? AppColors.error : AppColors.warning;
 
     return Padding(

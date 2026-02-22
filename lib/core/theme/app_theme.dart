@@ -84,6 +84,11 @@ abstract final class AppTheme {
           selectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
           unselectedLabelStyle: TextStyle(fontSize: 12),
         ),
+        bottomAppBarTheme: const BottomAppBarThemeData(
+          color: AppColors.background,
+          elevation: 8,
+          surfaceTintColor: Colors.transparent,
+        ),
         dividerTheme: const DividerThemeData(
           color: AppColors.divider,
           thickness: 1,

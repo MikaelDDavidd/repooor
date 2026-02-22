@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../domain/entities/pantry_item.dart';
+import '../providers/category_providers.dart';
 import '../providers/pantry_providers.dart';
 import '../providers/product_providers.dart';
 import '../providers/purchase_providers.dart';
@@ -21,6 +22,7 @@ class PurchaseDetailPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final items = ref.watch(purchaseItemsProvider(purchaseId));
     final products = ref.watch(productsProvider);
+    final categories = ref.watch(categoriesProvider);
     final pantryItems = ref.watch(pantryProvider);
 
     return Scaffold(
@@ -43,7 +45,7 @@ class PurchaseDetailPage extends ConsumerWidget {
           message: 'Erro ao carregar itens',
           onRetry: () => ref.invalidate(purchaseItemsProvider(purchaseId)),
         ),
-        data: (purchaseItems) => _buildItemsList(context, ref, purchaseItems, products),
+        data: (purchaseItems) => _buildItemsList(context, ref, purchaseItems, products, categories),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.of(context).push(
@@ -61,6 +63,7 @@ class PurchaseDetailPage extends ConsumerWidget {
     WidgetRef ref,
     List purchaseItems,
     AsyncValue products,
+    AsyncValue categories,
   ) {
     if (purchaseItems.isEmpty) {
       return const AppEmptyState(
@@ -75,29 +78,57 @@ class PurchaseDetailPage extends ConsumerWidget {
       separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final item = purchaseItems[index];
-        final product = products.valueOrNull
-            ?.where((p) => p.id == item.productId)
-            .firstOrNull;
+        final productMatches = products.valueOrNull?.where((p) => p.id == item.productId);
+        final product = (productMatches != null && productMatches.isNotEmpty) ? productMatches.first : null;
+        final categoryMatches = categories.valueOrNull?.where((c) => c.id == product?.categoryId);
+        final category = (categoryMatches != null && categoryMatches.isNotEmpty) ? categoryMatches.first : null;
+        final catColor = category != null ? Color(category.color) : AppColors.textSecondary;
+        final catIcon = category != null
+            ? IconData(category.icon, fontFamily: 'MaterialIcons')
+            : Icons.category;
+
         return Card(
-          child: ListTile(
-            title: Text(product?.name ?? 'Produto', style: AppTextStyles.body),
-            subtitle: Text('${item.quantity.toStringAsFixed(0)} ${product?.unit ?? ''}'),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit_outlined, size: 20),
-                  color: AppColors.textSecondary,
-                  onPressed: () => _editQuantity(context, ref, item.id, item.quantity),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, size: 20),
-                  color: AppColors.error,
-                  onPressed: () => ref
-                      .read(purchaseItemsProvider(purchaseId).notifier)
-                      .removeItem(item.id),
-                ),
-              ],
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () => _editQuantity(context, ref, item.id, item.quantity),
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: catColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(catIcon, color: catColor, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(product?.name ?? 'Produto', style: AppTextStyles.body),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${item.quantity.toStringAsFixed(0)} ${product?.unit ?? ''}',
+                          style: AppTextStyles.caption,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () => ref
+                        .read(purchaseItemsProvider(purchaseId).notifier)
+                        .removeItem(item.id),
+                    icon: const Icon(Icons.close, size: 20),
+                    color: AppColors.error,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -111,32 +142,10 @@ class PurchaseDetailPage extends ConsumerWidget {
     String itemId,
     double currentQty,
   ) async {
-    final controller = TextEditingController(text: currentQty.toStringAsFixed(0));
     final result = await showDialog<double>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Quantidade'),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancelar'),
-          ),
-          TextButton(
-            onPressed: () {
-              final v = double.tryParse(controller.text);
-              Navigator.of(ctx).pop(v);
-            },
-            child: const Text('Salvar'),
-          ),
-        ],
-      ),
+      builder: (ctx) => _EditQuantityDialog(initialValue: currentQty),
     );
-    controller.dispose();
     if (result != null && result > 0) {
       ref.read(purchaseItemsProvider(purchaseId).notifier).updateItem(itemId, result);
     }
@@ -185,5 +194,55 @@ class PurchaseDetailPage extends ConsumerWidget {
         Navigator.of(context).pop();
       }
     }
+  }
+}
+
+class _EditQuantityDialog extends StatefulWidget {
+  const _EditQuantityDialog({required this.initialValue});
+
+  final double initialValue;
+
+  @override
+  State<_EditQuantityDialog> createState() => _EditQuantityDialogState();
+}
+
+class _EditQuantityDialogState extends State<_EditQuantityDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialValue.toStringAsFixed(0));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Quantidade'),
+      content: TextField(
+        controller: _controller,
+        keyboardType: TextInputType.number,
+        autofocus: true,
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancelar'),
+        ),
+        TextButton(
+          onPressed: () {
+            final v = double.tryParse(_controller.text);
+            Navigator.of(context).pop(v);
+          },
+          child: const Text('Salvar'),
+        ),
+      ],
+    );
   }
 }

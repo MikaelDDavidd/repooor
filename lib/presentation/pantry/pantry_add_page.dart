@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../domain/entities/product.dart';
+import '../providers/category_providers.dart';
 import '../providers/product_providers.dart';
 import '../providers/pantry_providers.dart';
 import '../shared/widgets/app_loading_state.dart';
+import '../shared/widgets/product_picker_dialog.dart';
+import '../shared/widgets/quantity_field.dart';
 
 class PantryAddPage extends ConsumerStatefulWidget {
   const PantryAddPage({super.key});
@@ -12,7 +16,7 @@ class PantryAddPage extends ConsumerStatefulWidget {
 }
 
 class _PantryAddPageState extends ConsumerState<PantryAddPage> {
-  String? _selectedProductId;
+  Product? _selectedProduct;
   final _currentQtyController = TextEditingController(text: '0');
   final _idealQtyController = TextEditingController(text: '1');
   final _formKey = GlobalKey<FormState>();
@@ -26,10 +30,10 @@ class _PantryAddPageState extends ConsumerState<PantryAddPage> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedProductId == null) return;
+    if (_selectedProduct == null) return;
 
     await ref.read(pantryProvider.notifier).addItem(
-      _selectedProductId!,
+      _selectedProduct!.id,
       double.tryParse(_currentQtyController.text) ?? 0,
       double.tryParse(_idealQtyController.text) ?? 1,
     );
@@ -40,6 +44,7 @@ class _PantryAddPageState extends ConsumerState<PantryAddPage> {
   @override
   Widget build(BuildContext context) {
     final products = ref.watch(productsProvider);
+    final categories = ref.watch(categoriesProvider);
     final pantryItems = ref.watch(pantryProvider);
 
     return Scaffold(
@@ -60,31 +65,49 @@ class _PantryAddPageState extends ConsumerState<PantryAddPage> {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedProductId,
-                  decoration: const InputDecoration(labelText: 'Produto'),
-                  items: available.map((p) => DropdownMenuItem(
-                    value: p.id,
-                    child: Text(p.name),
-                  )).toList(),
-                  onChanged: (v) => setState(() => _selectedProductId = v),
-                  validator: (v) => v == null ? 'Selecione um produto' : null,
+                FormField<Product>(
+                  initialValue: _selectedProduct,
+                  validator: (_) => _selectedProduct == null ? 'Selecione um produto' : null,
+                  builder: (field) => InkWell(
+                    onTap: () async {
+                      final cats = categories.valueOrNull ?? [];
+                      final result = await ProductPickerDialog.show(
+                        context,
+                        products: available,
+                        categories: cats,
+                      );
+                      if (result != null) {
+                        setState(() => _selectedProduct = result);
+                        field.didChange(result);
+                      }
+                    },
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: 'Produto',
+                        errorText: field.errorText,
+                        suffixIcon: const Icon(Icons.chevron_right),
+                      ),
+                      child: Text(
+                        _selectedProduct?.name ?? 'Selecione um produto',
+                        style: _selectedProduct != null ? null : const TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                QuantityField(
                   controller: _currentQtyController,
-                  decoration: const InputDecoration(labelText: 'Quantidade atual'),
-                  keyboardType: TextInputType.number,
+                  label: 'Quantidade atual',
                   validator: (v) {
                     final n = double.tryParse(v ?? '');
                     return n == null || n < 0 ? 'Informe um valor válido' : null;
                   },
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                QuantityField(
                   controller: _idealQtyController,
-                  decoration: const InputDecoration(labelText: 'Quantidade ideal'),
-                  keyboardType: TextInputType.number,
+                  label: 'Quantidade ideal',
+                  min: 1,
                   validator: (v) {
                     final n = double.tryParse(v ?? '');
                     return n == null || n <= 0 ? 'Informe um valor maior que 0' : null;

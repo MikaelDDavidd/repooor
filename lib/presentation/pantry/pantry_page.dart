@@ -70,12 +70,10 @@ class PantryPage extends ConsumerWidget {
       separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
         final item = sorted[index];
-        final product = products.valueOrNull
-            ?.where((p) => p.id == item.productId)
-            .firstOrNull;
-        final category = categories.valueOrNull
-            ?.where((c) => c.id == product?.categoryId)
-            .firstOrNull;
+        final productList = products.valueOrNull?.where((p) => p.id == item.productId);
+        final product = (productList != null && productList.isNotEmpty) ? productList.first : null;
+        final categoryList = categories.valueOrNull?.where((c) => c.id == product?.categoryId);
+        final category = (categoryList != null && categoryList.isNotEmpty) ? categoryList.first : null;
         return _PantryTile(
           item: item,
           product: product,

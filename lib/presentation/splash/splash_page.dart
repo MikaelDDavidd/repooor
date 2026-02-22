@@ -40,7 +40,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              Icons.inventory_2_rounded,
+              Icons.shopping_basket_rounded,
               size: 80,
               color: AppColors.onPrimary,
             ),

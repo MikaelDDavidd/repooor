@@ -21,12 +21,10 @@ class ProductDetailPage extends ConsumerWidget {
     final categories = ref.watch(categoriesProvider);
     final consumption = ref.watch(consumptionByProductProvider(productId));
 
-    final product = products.valueOrNull
-        ?.where((p) => p.id == productId)
-        .firstOrNull;
-    final category = categories.valueOrNull
-        ?.where((c) => c.id == product?.categoryId)
-        .firstOrNull;
+    final productList = products.valueOrNull?.where((p) => p.id == productId);
+    final product = (productList != null && productList.isNotEmpty) ? productList.first : null;
+    final categoryList = categories.valueOrNull?.where((c) => c.id == product?.categoryId);
+    final category = (categoryList != null && categoryList.isNotEmpty) ? categoryList.first : null;
 
     return Scaffold(
       appBar: AppBar(title: Text(product?.name ?? 'Produto')),

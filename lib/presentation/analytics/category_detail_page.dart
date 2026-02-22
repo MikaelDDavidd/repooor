@@ -22,9 +22,8 @@ class CategoryDetailPage extends ConsumerWidget {
     final products = ref.watch(productsProvider);
     final consumption = ref.watch(consumptionByCategoryProvider);
 
-    final category = categories.valueOrNull
-        ?.where((c) => c.id == categoryId)
-        .firstOrNull;
+    final categoryList = categories.valueOrNull?.where((c) => c.id == categoryId);
+    final category = (categoryList != null && categoryList.isNotEmpty) ? categoryList.first : null;
 
     return Scaffold(
       appBar: AppBar(title: Text(category?.name ?? 'Categoria')),

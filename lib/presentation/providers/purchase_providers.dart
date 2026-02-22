@@ -89,7 +89,8 @@ class PurchaseItemsNotifier extends FamilyAsyncNotifier<List<PurchaseItem>, Stri
 
   Future<void> updateItem(String itemId, double quantity) async {
     final items = state.valueOrNull ?? [];
-    final existing = items.where((i) => i.id == itemId).firstOrNull;
+    final matches = items.where((i) => i.id == itemId);
+    final existing = matches.isNotEmpty ? matches.first : null;
     if (existing == null) return;
     await _updateItem(existing.copyWith(quantity: quantity));
     ref.invalidateSelf();

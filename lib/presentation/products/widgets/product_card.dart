@@ -18,7 +18,8 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final category = categories.where((c) => c.id == product.categoryId).firstOrNull;
+    final categoryList = categories.where((c) => c.id == product.categoryId);
+    final category = categoryList.isNotEmpty ? categoryList.first : null;
 
     return Card(
       child: InkWell(

@@ -57,7 +57,8 @@ class PantryNotifier extends AsyncNotifier<List<PantryItem>> {
 
   Future<void> incrementQuantity(String id, double amount) async {
     final items = state.valueOrNull ?? [];
-    final item = items.where((i) => i.id == id).firstOrNull;
+    final matches1 = items.where((i) => i.id == id);
+    final item = matches1.isNotEmpty ? matches1.first : null;
     if (item == null) return;
     await _updateQty(id, item.currentQuantity + amount);
     ref.invalidateSelf();
@@ -65,7 +66,8 @@ class PantryNotifier extends AsyncNotifier<List<PantryItem>> {
 
   Future<void> decrementQuantity(String id, double amount) async {
     final items = state.valueOrNull ?? [];
-    final item = items.where((i) => i.id == id).firstOrNull;
+    final matches2 = items.where((i) => i.id == id);
+    final item = matches2.isNotEmpty ? matches2.first : null;
     if (item == null) return;
     final newQty = (item.currentQuantity - amount).clamp(0.0, double.infinity);
     await _updateQty(id, newQty);
