@@ -48,15 +48,9 @@ class QuantityField extends StatelessWidget {
         const SizedBox(height: 8),
         Row(
           children: [
-            _StepButton(
-              icon: Icons.remove,
-              onTap: _decrement,
-            ),
+            _StepButton(icon: Icons.remove, onTap: _decrement),
             const SizedBox(width: 12),
-            _StepButton(
-              icon: Icons.add,
-              onTap: _increment,
-            ),
+            _StepButton(icon: Icons.add, onTap: _increment),
           ],
         ),
       ],
@@ -82,7 +76,7 @@ class _StepButton extends StatelessWidget {
           border: Border.all(color: AppColors.border),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Icon(icon, size: 20, color: AppColors.primary),
+        child: Icon(icon, size: 20, color: AppColors.primaryStrong),
       ),
     );
   }

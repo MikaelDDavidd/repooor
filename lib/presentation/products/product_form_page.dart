@@ -45,11 +45,13 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
     final notifier = ref.read(productsProvider.notifier);
 
     if (_isEditing) {
-      await notifier.edit(widget.product!.copyWith(
-        name: _nameController.text.trim(),
-        categoryId: _selectedCategoryId,
-        unit: _selectedUnit,
-      ));
+      await notifier.edit(
+        widget.product!.copyWith(
+          name: _nameController.text.trim(),
+          categoryId: _selectedCategoryId,
+          unit: _selectedUnit,
+        ),
+      );
     } else {
       await notifier.add(
         _nameController.text.trim(),
@@ -99,7 +101,8 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
               controller: _nameController,
               decoration: const InputDecoration(labelText: 'Nome do produto'),
               textCapitalization: TextCapitalization.sentences,
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Informe o nome' : null,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Informe o nome' : null,
             ),
             const SizedBox(height: 16),
             categories.when(
@@ -108,20 +111,24 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
               data: (cats) => DropdownButtonFormField<String>(
                 initialValue: _selectedCategoryId,
                 decoration: const InputDecoration(labelText: 'Categoria'),
-                items: cats.map((c) => DropdownMenuItem(
-                  value: c.id,
-                  child: Row(
-                    children: [
-                      Icon(
-                        IconData(c.icon, fontFamily: 'MaterialIcons'),
-                        color: Color(c.color),
-                        size: 20,
+                items: cats
+                    .map(
+                      (c) => DropdownMenuItem(
+                        value: c.id,
+                        child: Row(
+                          children: [
+                            Icon(
+                              IconData(c.icon, fontFamily: 'MaterialIcons'),
+                              color: Color(c.color),
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(c.name),
+                          ],
+                        ),
                       ),
-                      const SizedBox(width: 8),
-                      Text(c.name),
-                    ],
-                  ),
-                )).toList(),
+                    )
+                    .toList(),
                 onChanged: (v) => setState(() => _selectedCategoryId = v),
                 validator: (v) => v == null ? 'Selecione uma categoria' : null,
               ),
@@ -130,11 +137,14 @@ class _ProductFormPageState extends ConsumerState<ProductFormPage> {
             DropdownButtonFormField<String>(
               initialValue: _selectedUnit,
               decoration: const InputDecoration(labelText: 'Unidade'),
-              items: AppUnit.values.map((u) => DropdownMenuItem(
-                value: u.name,
-                child: Text(u.label),
-              )).toList(),
-              onChanged: (v) => setState(() => _selectedUnit = v ?? AppUnit.un.name),
+              items: AppUnit.values
+                  .map(
+                    (u) =>
+                        DropdownMenuItem(value: u.name, child: Text(u.label)),
+                  )
+                  .toList(),
+              onChanged: (v) =>
+                  setState(() => _selectedUnit = v ?? AppUnit.un.name),
             ),
             const SizedBox(height: 32),
             ElevatedButton(

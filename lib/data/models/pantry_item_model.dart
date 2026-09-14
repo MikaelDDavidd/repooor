@@ -40,6 +40,15 @@ class PantryItemModel {
     };
   }
 
+  Map<String, dynamic> toRemoteMap({required int updatedAt}) {
+    return {
+      'productId': productId,
+      'currentQuantity': currentQuantity,
+      'idealQuantity': idealQuantity,
+      'updatedAt': updatedAt,
+    };
+  }
+
   PantryItem toEntity() {
     return PantryItem(
       id: id,

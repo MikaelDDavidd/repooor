@@ -20,7 +20,9 @@ class SearchResultItem {
 
 final searchQueryProvider = StateProvider<String>((_) => '');
 
-final searchResultsProvider = FutureProvider<List<SearchResultItem>>((ref) async {
+final searchResultsProvider = FutureProvider<List<SearchResultItem>>((
+  ref,
+) async {
   final query = ref.watch(searchQueryProvider);
   if (query.isEmpty) return [];
 
@@ -30,7 +32,9 @@ final searchResultsProvider = FutureProvider<List<SearchResultItem>>((ref) async
   final pantryItems = await ref.watch(pantryProvider.future);
   final purchases = await ref.watch(purchasesProvider.future);
 
-  final pantryByProductId = {for (final item in pantryItems) item.productId: item};
+  final pantryByProductId = {
+    for (final item in pantryItems) item.productId: item,
+  };
 
   return products.map((product) {
     Purchase? lastPurchase;

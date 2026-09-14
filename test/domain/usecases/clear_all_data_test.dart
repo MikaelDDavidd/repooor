@@ -17,8 +17,7 @@ void main() {
   group('ClearAllData', () {
     test('should call repository.clearAll', () async {
       // Arrange
-      when(() => mockRepository.clearAll())
-          .thenAnswer((_) async {});
+      when(() => mockRepository.clearAll()).thenAnswer((_) async {});
 
       // Act
       await usecase.call();
@@ -29,8 +28,9 @@ void main() {
 
     test('should rethrow when repository throws', () async {
       // Arrange
-      when(() => mockRepository.clearAll())
-          .thenThrow(Exception('Clear failed'));
+      when(
+        () => mockRepository.clearAll(),
+      ).thenThrow(Exception('Clear failed'));
 
       // Act & Assert
       expect(() => usecase.call(), throwsException);

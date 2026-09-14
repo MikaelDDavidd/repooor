@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/theme/app_colors.dart';
 import '../../domain/entities/pantry_item.dart';
 import '../../domain/entities/product.dart';
 import '../providers/pantry_providers.dart';
+import '../shared/widgets/app_sheet.dart';
 
 class PantryEditDialog extends ConsumerStatefulWidget {
   const PantryEditDialog({super.key, required this.item, this.product});
@@ -11,15 +11,18 @@ class PantryEditDialog extends ConsumerStatefulWidget {
   final PantryItem item;
   final Product? product;
 
-  static Future<void> show(BuildContext context, {required PantryItem item, Product? product}) {
-    return showModalBottomSheet(
-      context: context,
+  static Future<void> show(
+    BuildContext context, {
+    required PantryItem item,
+    Product? product,
+  }) {
+    return AppSheet.show<void>(
+      context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
       builder: (_) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
         child: PantryEditDialog(item: item, product: product),
       ),
     );
@@ -65,28 +68,13 @@ class _PantryEditDialogState extends ConsumerState<PantryEditDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
+    return AppSheet(
+      title: widget.product?.name ?? 'Editar item',
+      subtitle: 'Ajuste o que você tem e o quanto quer manter',
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.border,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            widget.product?.name ?? 'Editar item',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 20),
           TextField(
             controller: _currentController,
             decoration: const InputDecoration(labelText: 'Quantidade atual'),
@@ -99,11 +87,7 @@ class _PantryEditDialogState extends ConsumerState<PantryEditDialog> {
             keyboardType: TextInputType.number,
           ),
           const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: _save,
-            child: const Text('Salvar'),
-          ),
-          const SizedBox(height: 8),
+          ElevatedButton(onPressed: _save, child: const Text('Salvar')),
         ],
       ),
     );

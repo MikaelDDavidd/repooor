@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/di/providers.dart';
 import '../../core/theme/app_colors.dart';
+import '../providers/auth_providers.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
   const SplashPage({super.key});
@@ -21,20 +22,21 @@ class _SplashPageState extends ConsumerState<SplashPage> {
   Future<void> _navigate() async {
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
-    final hasSeenOnboarding =
-        await ref.read(getHasSeenOnboardingProvider)();
+    final user = await ref.read(authStateProvider.future);
     if (!mounted) return;
-    if (hasSeenOnboarding) {
+    if (user != null) {
       context.go('/home');
-    } else {
-      context.go('/onboarding');
+      return;
     }
+    final hasSeenOnboarding = await ref.read(getHasSeenOnboardingProvider)();
+    if (!mounted) return;
+    context.go(hasSeenOnboarding ? '/login' : '/onboarding');
   }
 
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      backgroundColor: AppColors.primary,
+      backgroundColor: AppColors.primaryStrong,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,

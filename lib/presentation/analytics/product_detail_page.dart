@@ -8,6 +8,7 @@ import '../providers/category_providers.dart';
 import '../providers/product_providers.dart';
 import '../shared/widgets/app_error_state.dart';
 import '../shared/widgets/app_loading_state.dart';
+import 'widgets/price_summary_card.dart';
 import 'widgets/product_history_line_chart.dart';
 
 class ProductDetailPage extends ConsumerWidget {
@@ -22,9 +23,15 @@ class ProductDetailPage extends ConsumerWidget {
     final consumption = ref.watch(consumptionByProductProvider(productId));
 
     final productList = products.valueOrNull?.where((p) => p.id == productId);
-    final product = (productList != null && productList.isNotEmpty) ? productList.first : null;
-    final categoryList = categories.valueOrNull?.where((c) => c.id == product?.categoryId);
-    final category = (categoryList != null && categoryList.isNotEmpty) ? categoryList.first : null;
+    final product = (productList != null && productList.isNotEmpty)
+        ? productList.first
+        : null;
+    final categoryList = categories.valueOrNull?.where(
+      (c) => c.id == product?.categoryId,
+    );
+    final category = (categoryList != null && categoryList.isNotEmpty)
+        ? categoryList.first
+        : null;
 
     return Scaffold(
       appBar: AppBar(title: Text(product?.name ?? 'Produto')),
@@ -50,13 +57,17 @@ class ProductDetailPage extends ConsumerWidget {
     List<ProductConsumptionPoint> points,
   ) {
     final totalPurchased = points.fold(0.0, (sum, p) => sum + p.quantity);
-    final avgPerPurchase = points.isNotEmpty ? totalPurchased / points.length : 0.0;
+    final avgPerPurchase = points.isNotEmpty
+        ? totalPurchased / points.length
+        : 0.0;
     final lastDate = points.isNotEmpty ? points.last.date : null;
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         _buildHeader(productName, categoryName),
+        const SizedBox(height: 16),
+        PriceSummaryCard(productId: productId),
         const SizedBox(height: 24),
         Text('Historico de compras', style: AppTextStyles.heading2),
         const SizedBox(height: 16),
@@ -102,9 +113,7 @@ class ProductDetailPage extends ConsumerWidget {
         Expanded(
           child: _StatCard(
             label: 'Ultima compra',
-            value: lastDate != null
-                ? '${lastDate.day}/${lastDate.month}'
-                : '-',
+            value: lastDate != null ? '${lastDate.day}/${lastDate.month}' : '-',
           ),
         ),
       ],
@@ -127,7 +136,9 @@ class _StatCard extends StatelessWidget {
           children: [
             Text(
               value,
-              style: AppTextStyles.heading2.copyWith(color: AppColors.primary),
+              style: AppTextStyles.heading2.copyWith(
+                color: AppColors.primaryStrong,
+              ),
             ),
             const SizedBox(height: 4),
             Text(

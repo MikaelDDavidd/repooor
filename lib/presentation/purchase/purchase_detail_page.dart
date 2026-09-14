@@ -1,17 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
-import '../../domain/entities/pantry_item.dart';
+import '../../domain/entities/category.dart';
+import '../../domain/entities/product.dart';
+import '../../domain/entities/purchase_item.dart';
 import '../providers/category_providers.dart';
-import '../providers/pantry_providers.dart';
+import '../providers/nfce_providers.dart';
 import '../providers/product_providers.dart';
 import '../providers/purchase_providers.dart';
+import '../shared/utils/category_grouping.dart';
 import '../shared/widgets/app_empty_state.dart';
 import '../shared/widgets/app_loading_state.dart';
 import '../shared/widgets/app_error_state.dart';
+import '../shared/widgets/category_section_header.dart';
+import '../shared/widgets/app_icon_button.dart';
 import '../shared/widgets/confirm_dialog.dart';
+import '../shared/widgets/item_pick_dialog.dart';
+import '../shared/widgets/slide_confirm_dialog.dart';
+import '../shared/widgets/pick_check_button.dart';
 import 'purchase_add_item_page.dart';
+import 'widgets/purchase_item_price_label.dart';
+import 'widgets/purchase_plan_summary.dart';
+import 'widgets/purchase_total_chip.dart';
 
 class PurchaseDetailPage extends ConsumerWidget {
   const PurchaseDetailPage({super.key, required this.purchaseId});
@@ -23,18 +35,20 @@ class PurchaseDetailPage extends ConsumerWidget {
     final items = ref.watch(purchaseItemsProvider(purchaseId));
     final products = ref.watch(productsProvider);
     final categories = ref.watch(categoriesProvider);
-    final pantryItems = ref.watch(pantryProvider);
+    final purchase = ref.watch(purchaseByIdProvider(purchaseId)).valueOrNull;
+    final isPlanned = purchase?.isPlanned ?? false;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Itens da Compra'),
+        title: Text(isPlanned ? 'Compra planejada' : 'Itens da Compra'),
         actions: [
+          if (isPlanned)
+            TextButton(
+              onPressed: () => _reconcile(context, ref),
+              child: const Text('Conciliar nota'),
+            ),
           TextButton(
-            onPressed: () => _suggestItems(context, ref, pantryItems),
-            child: const Text('Sugerir'),
-          ),
-          TextButton(
-            onPressed: () => _completePurchase(context, ref),
+            onPressed: () => _completePurchase(context, ref, isPlanned),
             child: const Text('Finalizar'),
           ),
         ],
@@ -45,10 +59,18 @@ class PurchaseDetailPage extends ConsumerWidget {
           message: 'Erro ao carregar itens',
           onRetry: () => ref.invalidate(purchaseItemsProvider(purchaseId)),
         ),
-        data: (purchaseItems) => _buildItemsList(context, ref, purchaseItems, products, categories),
+        data: (purchaseItems) => _buildItemsList(
+          context,
+          ref,
+          purchaseItems,
+          products,
+          categories,
+          isPlanned,
+        ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.of(context).push(
+        heroTag: null,
+        onPressed: () => Navigator.of(context, rootNavigator: true).push(
           MaterialPageRoute(
             builder: (_) => PurchaseAddItemPage(purchaseId: purchaseId),
           ),
@@ -61,135 +83,278 @@ class PurchaseDetailPage extends ConsumerWidget {
   Widget _buildItemsList(
     BuildContext context,
     WidgetRef ref,
-    List purchaseItems,
+    List<PurchaseItem> purchaseItems,
     AsyncValue products,
     AsyncValue categories,
+    bool isPlanned,
   ) {
     if (purchaseItems.isEmpty) {
       return const AppEmptyState(
         icon: Icons.receipt_long_outlined,
         title: 'Lista vazia',
-        subtitle: 'Adicione itens ou toque em "Sugerir"',
+        subtitle: 'Toque no + para adicionar itens',
       );
     }
-    return ListView.separated(
-      padding: const EdgeInsets.all(16),
-      itemCount: purchaseItems.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final item = purchaseItems[index];
-        final productMatches = products.valueOrNull?.where((p) => p.id == item.productId);
-        final product = (productMatches != null && productMatches.isNotEmpty) ? productMatches.first : null;
-        final categoryMatches = categories.valueOrNull?.where((c) => c.id == product?.categoryId);
-        final category = (categoryMatches != null && categoryMatches.isNotEmpty) ? categoryMatches.first : null;
-        final catColor = category != null ? Color(category.color) : AppColors.textSecondary;
-        final catIcon = category != null
-            ? IconData(category.icon, fontFamily: 'MaterialIcons')
-            : Icons.category;
 
-        return Card(
-          child: InkWell(
-            borderRadius: BorderRadius.circular(12),
-            onTap: () => _editQuantity(context, ref, item.id, item.quantity),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: catColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(catIcon, color: catColor, size: 22),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(product?.name ?? 'Produto', style: AppTextStyles.body),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${item.quantity.toStringAsFixed(0)} ${product?.unit ?? ''}',
-                          style: AppTextStyles.caption,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    onPressed: () => ref
-                        .read(purchaseItemsProvider(purchaseId).notifier)
-                        .removeItem(item.id),
-                    icon: const Icon(Icons.close, size: 20),
-                    color: AppColors.error,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ],
+    final productList = (products.valueOrNull as List<Product>?) ?? [];
+    final productMap = {for (final p in productList) p.id: p};
+    final categoryList = (categories.valueOrNull as List<Category>?) ?? [];
+
+    final groups = groupByCategory(
+      items: purchaseItems,
+      categoryIdOf: (item) => productMap[item.productId]?.categoryId ?? '',
+      categories: categoryList,
+    );
+
+    for (final g in groups) {
+      g.items.sort((a, b) {
+        final nameA = productMap[a.productId]?.name ?? '';
+        final nameB = productMap[b.productId]?.name ?? '';
+        return nameA.toLowerCase().compareTo(nameB.toLowerCase());
+      });
+    }
+
+    final priced = purchaseItems.where((i) => i.unitPrice != null);
+    final totalPrice = priced.isEmpty
+        ? null
+        : priced.fold<double>(0, (sum, i) => sum + i.totalPrice!);
+    final isPartial = priced.length != purchaseItems.length;
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: groups.length + 1,
+      itemBuilder: (context, i) {
+        if (i == 0) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              PurchasePlanSummary(items: purchaseItems),
+              _PurchaseSummaryHeader(
+                totalItems: purchaseItems.length,
+                totalPrice: totalPrice,
+                isPartial: isPartial,
+              ),
+            ],
+          );
+        }
+        final group = groups[i - 1];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            CategorySectionHeader(category: group.category),
+            const SizedBox(height: 8),
+            ...group.items.map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _buildItemTile(
+                  context,
+                  ref,
+                  item,
+                  productMap,
+                  group.category,
+                  isPlanned,
+                ),
               ),
             ),
-          ),
+          ],
         );
       },
     );
   }
 
-  Future<void> _editQuantity(
+  Widget _buildItemTile(
     BuildContext context,
     WidgetRef ref,
-    String itemId,
-    double currentQty,
-  ) async {
-    final result = await showDialog<double>(
-      context: context,
-      builder: (ctx) => _EditQuantityDialog(initialValue: currentQty),
+    PurchaseItem item,
+    Map<String, Product> productMap,
+    Category? category,
+    bool isPlanned,
+  ) {
+    final product = productMap[item.productId];
+    final catColor = category != null
+        ? Color(category.color)
+        : AppColors.textSecondary;
+    final catIcon = category != null
+        ? IconData(category.icon, fontFamily: 'MaterialIcons')
+        : Icons.category;
+    final showCheck = isPlanned;
+    final picked = showCheck && item.picked;
+
+    return Card(
+      color: picked ? AppColors.primary : null,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => showCheck
+            ? _togglePicked(context, ref, item, product)
+            : _editItem(context, ref, item, product),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              if (showCheck)
+                PickCheckButton(
+                  picked: item.picked,
+                  onPressed: () => _togglePicked(context, ref, item, product),
+                  fallbackIcon: catIcon,
+                  fallbackColor: catColor,
+                )
+              else
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: catColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(catIcon, color: catColor, size: 22),
+                ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product?.name ?? 'Produto',
+                      style: AppTextStyles.body.copyWith(
+                        color: AppColors.textPrimary.withValues(
+                          alpha: picked ? 0.75 : 1,
+                        ),
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    PurchaseItemPriceLabel(
+                      quantity: item.quantity,
+                      unit: product?.unit ?? '',
+                      unitPrice: item.unitPrice,
+                      onFilledBackground: picked,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              if (picked)
+                AppIconButton(
+                  icon: Icons.close,
+                  color: AppColors.textPrimary.withValues(alpha: 0.75),
+                  tooltip: 'Desmarcar',
+                  onPressed: () => _togglePicked(context, ref, item, product),
+                )
+              else
+                AppIconButton(
+                  icon: Icons.delete_outline,
+                  color: AppColors.textSecondary,
+                  tooltip: 'Tirar da compra',
+                  onPressed: () => ref
+                      .read(purchaseItemsProvider(purchaseId).notifier)
+                      .removeItem(item.id),
+                ),
+            ],
+          ),
+        ),
+      ),
     );
-    if (result != null && result > 0) {
-      ref.read(purchaseItemsProvider(purchaseId).notifier).updateItem(itemId, result);
-    }
   }
 
-  Future<void> _suggestItems(
+  Future<void> _editItem(
     BuildContext context,
     WidgetRef ref,
-    AsyncValue<List<PantryItem>> pantryItems,
+    PurchaseItem item,
+    Product? product,
   ) async {
-    final items = pantryItems.valueOrNull ?? [];
-    final lowItems = items.where((i) => i.deficit > 0).toList();
-    if (lowItems.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Todos os itens estão no nível ideal!')),
+    final result = await ItemPickDialog.show(
+      context,
+      title: 'Ajustar item',
+      productName: product?.name ?? 'Produto',
+      unit: product?.unit ?? '',
+      initialQuantity: item.quantity,
+      initialUnitPrice: item.unitPrice,
+      confirmLabel: 'Salvar',
+    );
+    if (result == null) return;
+    await ref
+        .read(purchaseItemsProvider(purchaseId).notifier)
+        .updateItem(
+          item.id,
+          result.quantity,
+          unitPrice: result.unitPrice,
+          clearUnitPrice: result.unitPrice == null,
+        );
+  }
+
+  Future<void> _togglePicked(
+    BuildContext context,
+    WidgetRef ref,
+    PurchaseItem item,
+    Product? product,
+  ) async {
+    final notifier = ref.read(purchaseItemsProvider(purchaseId).notifier);
+    final name = product?.name ?? 'Item';
+
+    if (item.picked) {
+      final confirmed = await SlideConfirmDialog.show(
+        context,
+        title: 'Tirar do carrinho?',
+        message:
+            '"$name" volta para a lista de itens a pegar. Arraste para confirmar.',
+        slideLabel: 'Arraste para desmarcar',
       );
+      if (confirmed == true) await notifier.unpickItem(item.id);
       return;
     }
-    final confirmed = await ConfirmDialog.show(
+
+    final result = await ItemPickDialog.show(
       context,
-      title: 'Sugerir itens',
-      content: '${lowItems.length} itens estão abaixo do ideal. Adicionar à compra?',
-      confirmLabel: 'Adicionar',
+      productName: name,
+      unit: product?.unit ?? '',
+      initialQuantity: item.quantity,
+      initialUnitPrice: item.unitPrice,
+      confirmLabel: 'Salvar',
     );
-    if (confirmed == true) {
-      final notifier = ref.read(purchaseItemsProvider(purchaseId).notifier);
-      for (final pantryItem in lowItems) {
-        await notifier.addItem(pantryItem.productId, pantryItem.deficit);
-      }
-    }
+    if (result == null) return;
+    await notifier.pickItem(
+      item.id,
+      quantity: result.quantity,
+      unitPrice: result.unitPrice,
+    );
   }
 
-  Future<void> _completePurchase(BuildContext context, WidgetRef ref) async {
+  Future<void> _reconcile(BuildContext context, WidgetRef ref) async {
+    final confirmed = await ConfirmDialog.show(
+      context,
+      title: 'Conciliar com a nota',
+      content:
+          'Escaneie o QR Code do cupom fiscal. Os valores reais entram no lugar dos projetados, e o que você projetou fica guardado para comparação.',
+      confirmLabel: 'Escanear',
+    );
+    if (confirmed != true || !context.mounted) return;
+    final router = GoRouter.of(context);
+    ref.read(nfceImportProvider.notifier).startReconciliation(purchaseId);
+    Navigator.of(context).pop();
+    router.push('/nfce/scan');
+  }
+
+  Future<void> _completePurchase(
+    BuildContext context,
+    WidgetRef ref,
+    bool isPlanned,
+  ) async {
     final confirmed = await ConfirmDialog.show(
       context,
       title: 'Finalizar compra',
-      content: 'As quantidades serão adicionadas à despensa. Continuar?',
+      content: isPlanned
+          ? 'As quantidades compradas serão adicionadas à despensa e a compra deixa de ser um plano. Continuar?'
+          : 'As quantidades serão adicionadas à despensa. Continuar?',
       confirmLabel: 'Finalizar',
     );
     if (confirmed == true) {
       await ref.read(purchasesProvider.notifier).completePurchase(purchaseId);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Compra finalizada! Despensa atualizada.')),
+          const SnackBar(
+            content: Text('Compra finalizada! Despensa atualizada.'),
+          ),
         );
         Navigator.of(context).pop();
       }
@@ -197,52 +362,31 @@ class PurchaseDetailPage extends ConsumerWidget {
   }
 }
 
-class _EditQuantityDialog extends StatefulWidget {
-  const _EditQuantityDialog({required this.initialValue});
+class _PurchaseSummaryHeader extends StatelessWidget {
+  const _PurchaseSummaryHeader({
+    required this.totalItems,
+    required this.totalPrice,
+    required this.isPartial,
+  });
 
-  final double initialValue;
-
-  @override
-  State<_EditQuantityDialog> createState() => _EditQuantityDialogState();
-}
-
-class _EditQuantityDialogState extends State<_EditQuantityDialog> {
-  late final TextEditingController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: widget.initialValue.toStringAsFixed(0));
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+  final int totalItems;
+  final double? totalPrice;
+  final bool isPartial;
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Quantidade'),
-      content: TextField(
-        controller: _controller,
-        keyboardType: TextInputType.number,
-        autofocus: true,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            '$totalItems ${totalItems == 1 ? 'item' : 'itens'}',
+            style: AppTextStyles.bodySecondary,
+          ),
+          PurchaseTotalChip(total: totalPrice, partial: isPartial),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
-        ),
-        TextButton(
-          onPressed: () {
-            final v = double.tryParse(_controller.text);
-            Navigator.of(context).pop(v);
-          },
-          child: const Text('Salvar'),
-        ),
-      ],
     );
   }
 }

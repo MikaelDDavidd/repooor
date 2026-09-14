@@ -54,19 +54,22 @@ void main() {
     });
 
     group('fromMap', () {
-      test('should return a valid model when map contains all required fields', () {
-        // Arrange
-        // (map already defined above)
+      test(
+        'should return a valid model when map contains all required fields',
+        () {
+          // Arrange
+          // (map already defined above)
 
-        // Act
-        final result = ProductModel.fromMap(map);
+          // Act
+          final result = ProductModel.fromMap(map);
 
-        // Assert
-        expect(result.id, 'prod-1');
-        expect(result.name, 'Banana');
-        expect(result.categoryId, 'cat-1');
-        expect(result.unit, 'kg');
-      });
+          // Assert
+          expect(result.id, 'prod-1');
+          expect(result.name, 'Banana');
+          expect(result.categoryId, 'cat-1');
+          expect(result.unit, 'kg');
+        },
+      );
 
       test('should read category_id from snake_case key in map', () {
         // Arrange
@@ -118,49 +121,55 @@ void main() {
     });
 
     group('round-trip', () {
-      test('should preserve all data through entity -> model -> map -> model -> entity', () {
-        // Arrange
-        const originalEntity = Product(
-          id: 'prod-rt',
-          name: 'Round Trip Product',
-          categoryId: 'cat-rt',
-          unit: 'L',
-        );
+      test(
+        'should preserve all data through entity -> model -> map -> model -> entity',
+        () {
+          // Arrange
+          const originalEntity = Product(
+            id: 'prod-rt',
+            name: 'Round Trip Product',
+            categoryId: 'cat-rt',
+            unit: 'L',
+          );
 
-        // Act
-        final modelFromEntity = ProductModel.fromEntity(originalEntity);
-        final mapFromModel = modelFromEntity.toMap();
-        final modelFromMap = ProductModel.fromMap(mapFromModel);
-        final finalEntity = modelFromMap.toEntity();
+          // Act
+          final modelFromEntity = ProductModel.fromEntity(originalEntity);
+          final mapFromModel = modelFromEntity.toMap();
+          final modelFromMap = ProductModel.fromMap(mapFromModel);
+          final finalEntity = modelFromMap.toEntity();
 
-        // Assert
-        expect(finalEntity.id, originalEntity.id);
-        expect(finalEntity.name, originalEntity.name);
-        expect(finalEntity.categoryId, originalEntity.categoryId);
-        expect(finalEntity.unit, originalEntity.unit);
-      });
+          // Assert
+          expect(finalEntity.id, originalEntity.id);
+          expect(finalEntity.name, originalEntity.name);
+          expect(finalEntity.categoryId, originalEntity.categoryId);
+          expect(finalEntity.unit, originalEntity.unit);
+        },
+      );
 
-      test('should preserve all data through map -> model -> entity -> model -> map', () {
-        // Arrange
-        final originalMap = <String, dynamic>{
-          'id': 'prod-rt2',
-          'name': 'Map Round Trip Product',
-          'category_id': 'cat-rt2',
-          'unit': 'g',
-        };
+      test(
+        'should preserve all data through map -> model -> entity -> model -> map',
+        () {
+          // Arrange
+          final originalMap = <String, dynamic>{
+            'id': 'prod-rt2',
+            'name': 'Map Round Trip Product',
+            'category_id': 'cat-rt2',
+            'unit': 'g',
+          };
 
-        // Act
-        final modelFromMap = ProductModel.fromMap(originalMap);
-        final entityFromModel = modelFromMap.toEntity();
-        final modelFromEntity = ProductModel.fromEntity(entityFromModel);
-        final finalMap = modelFromEntity.toMap();
+          // Act
+          final modelFromMap = ProductModel.fromMap(originalMap);
+          final entityFromModel = modelFromMap.toEntity();
+          final modelFromEntity = ProductModel.fromEntity(entityFromModel);
+          final finalMap = modelFromEntity.toMap();
 
-        // Assert
-        expect(finalMap['id'], originalMap['id']);
-        expect(finalMap['name'], originalMap['name']);
-        expect(finalMap['category_id'], originalMap['category_id']);
-        expect(finalMap['unit'], originalMap['unit']);
-      });
+          // Assert
+          expect(finalMap['id'], originalMap['id']);
+          expect(finalMap['name'], originalMap['name']);
+          expect(finalMap['category_id'], originalMap['category_id']);
+          expect(finalMap['unit'], originalMap['unit']);
+        },
+      );
     });
   });
 }

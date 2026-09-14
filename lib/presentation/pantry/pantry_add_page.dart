@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/product.dart';
-import '../providers/category_providers.dart';
 import '../providers/product_providers.dart';
 import '../providers/pantry_providers.dart';
 import '../shared/widgets/app_loading_state.dart';
@@ -32,11 +32,13 @@ class _PantryAddPageState extends ConsumerState<PantryAddPage> {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedProduct == null) return;
 
-    await ref.read(pantryProvider.notifier).addItem(
-      _selectedProduct!.id,
-      double.tryParse(_currentQtyController.text) ?? 0,
-      double.tryParse(_idealQtyController.text) ?? 1,
-    );
+    await ref
+        .read(pantryProvider.notifier)
+        .addItem(
+          _selectedProduct!.id,
+          double.tryParse(_currentQtyController.text) ?? 0,
+          double.tryParse(_idealQtyController.text) ?? 1,
+        );
 
     if (mounted) Navigator.of(context).pop();
   }
@@ -44,7 +46,6 @@ class _PantryAddPageState extends ConsumerState<PantryAddPage> {
   @override
   Widget build(BuildContext context) {
     final products = ref.watch(productsProvider);
-    final categories = ref.watch(categoriesProvider);
     final pantryItems = ref.watch(pantryProvider);
 
     return Scaffold(
@@ -52,13 +53,9 @@ class _PantryAddPageState extends ConsumerState<PantryAddPage> {
       body: products.when(
         loading: () => const AppLoadingState(),
         error: (_, _) => const Center(child: Text('Erro ao carregar produtos')),
-        data: (prods) {
-          final existingProductIds = pantryItems.valueOrNull
-              ?.map((i) => i.productId)
-              .toSet() ?? {};
-          final available = prods
-              .where((p) => !existingProductIds.contains(p.id))
-              .toList();
+        data: (_) {
+          final existingProductIds =
+              pantryItems.valueOrNull?.map((i) => i.productId).toSet() ?? {};
 
           return Form(
             key: _formKey,
@@ -67,14 +64,13 @@ class _PantryAddPageState extends ConsumerState<PantryAddPage> {
               children: [
                 FormField<Product>(
                   initialValue: _selectedProduct,
-                  validator: (_) => _selectedProduct == null ? 'Selecione um produto' : null,
+                  validator: (_) =>
+                      _selectedProduct == null ? 'Selecione um produto' : null,
                   builder: (field) => InkWell(
                     onTap: () async {
-                      final cats = categories.valueOrNull ?? [];
                       final result = await ProductPickerDialog.show(
                         context,
-                        products: available,
-                        categories: cats,
+                        excludeIds: existingProductIds,
                       );
                       if (result != null) {
                         setState(() => _selectedProduct = result);
@@ -89,7 +85,9 @@ class _PantryAddPageState extends ConsumerState<PantryAddPage> {
                       ),
                       child: Text(
                         _selectedProduct?.name ?? 'Selecione um produto',
-                        style: _selectedProduct != null ? null : const TextStyle(color: Colors.grey),
+                        style: _selectedProduct != null
+                            ? null
+                            : const TextStyle(color: AppColors.textSecondary),
                       ),
                     ),
                   ),
@@ -100,7 +98,9 @@ class _PantryAddPageState extends ConsumerState<PantryAddPage> {
                   label: 'Quantidade atual',
                   validator: (v) {
                     final n = double.tryParse(v ?? '');
-                    return n == null || n < 0 ? 'Informe um valor válido' : null;
+                    return n == null || n < 0
+                        ? 'Informe um valor válido'
+                        : null;
                   },
                 ),
                 const SizedBox(height: 16),
@@ -110,7 +110,9 @@ class _PantryAddPageState extends ConsumerState<PantryAddPage> {
                   min: 1,
                   validator: (v) {
                     final n = double.tryParse(v ?? '');
-                    return n == null || n <= 0 ? 'Informe um valor maior que 0' : null;
+                    return n == null || n <= 0
+                        ? 'Informe um valor maior que 0'
+                        : null;
                   },
                 ),
                 const SizedBox(height: 32),

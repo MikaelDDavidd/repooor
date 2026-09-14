@@ -22,14 +22,20 @@ final lowStockCountProvider = FutureProvider<int>((ref) async {
 class PantryNotifier extends AsyncNotifier<List<PantryItem>> {
   GetPantryItems get _getAll => ref.watch(getPantryItemsProvider);
   AddToPantry get _add => ref.watch(addToPantryProvider);
-  UpdatePantryQuantity get _updateQty => ref.watch(updatePantryQuantityProvider);
-  UpdateIdealQuantity get _updateIdeal => ref.watch(updateIdealQuantityProvider);
+  UpdatePantryQuantity get _updateQty =>
+      ref.watch(updatePantryQuantityProvider);
+  UpdateIdealQuantity get _updateIdeal =>
+      ref.watch(updateIdealQuantityProvider);
   RemoveFromPantry get _remove => ref.watch(removeFromPantryProvider);
 
   @override
   Future<List<PantryItem>> build() => _getAll();
 
-  Future<void> addItem(String productId, double currentQty, double idealQty) async {
+  Future<void> addItem(
+    String productId,
+    double currentQty,
+    double idealQty,
+  ) async {
     final item = PantryItem(
       id: _uuid.v4(),
       productId: productId,

@@ -112,37 +112,73 @@ class _ButtonGrid extends ConsumerWidget {
       child: Column(
         children: [
           _buildRow([
-            _CalcButton(label: 'AC', type: _ButtonType.function, onTap: notifier.clear),
-            _CalcButton(label: '+/-', type: _ButtonType.function, onTap: notifier.toggleSign),
-            _CalcButton(label: '%', type: _ButtonType.function, onTap: notifier.percentage),
-            _CalcButton(label: '\u00f7', type: _ButtonType.operation, onTap: () => notifier.inputOperation('\u00f7')),
+            _CalcButton(
+              label: 'AC',
+              type: _ButtonType.function,
+              onTap: notifier.clear,
+            ),
+            _CalcButton(
+              label: '+/-',
+              type: _ButtonType.function,
+              onTap: notifier.toggleSign,
+            ),
+            _CalcButton(
+              label: '%',
+              type: _ButtonType.function,
+              onTap: notifier.percentage,
+            ),
+            _CalcButton(
+              label: '\u00f7',
+              type: _ButtonType.operation,
+              onTap: () => notifier.inputOperation('\u00f7'),
+            ),
           ]),
           const SizedBox(height: 12),
           _buildRow([
             _CalcButton(label: '7', onTap: () => notifier.inputDigit('7')),
             _CalcButton(label: '8', onTap: () => notifier.inputDigit('8')),
             _CalcButton(label: '9', onTap: () => notifier.inputDigit('9')),
-            _CalcButton(label: '\u00d7', type: _ButtonType.operation, onTap: () => notifier.inputOperation('\u00d7')),
+            _CalcButton(
+              label: '\u00d7',
+              type: _ButtonType.operation,
+              onTap: () => notifier.inputOperation('\u00d7'),
+            ),
           ]),
           const SizedBox(height: 12),
           _buildRow([
             _CalcButton(label: '4', onTap: () => notifier.inputDigit('4')),
             _CalcButton(label: '5', onTap: () => notifier.inputDigit('5')),
             _CalcButton(label: '6', onTap: () => notifier.inputDigit('6')),
-            _CalcButton(label: '-', type: _ButtonType.operation, onTap: () => notifier.inputOperation('-')),
+            _CalcButton(
+              label: '-',
+              type: _ButtonType.operation,
+              onTap: () => notifier.inputOperation('-'),
+            ),
           ]),
           const SizedBox(height: 12),
           _buildRow([
             _CalcButton(label: '1', onTap: () => notifier.inputDigit('1')),
             _CalcButton(label: '2', onTap: () => notifier.inputDigit('2')),
             _CalcButton(label: '3', onTap: () => notifier.inputDigit('3')),
-            _CalcButton(label: '+', type: _ButtonType.operation, onTap: () => notifier.inputOperation('+')),
+            _CalcButton(
+              label: '+',
+              type: _ButtonType.operation,
+              onTap: () => notifier.inputOperation('+'),
+            ),
           ]),
           const SizedBox(height: 12),
           _buildRow([
-            _CalcButton(label: '0', flex: 2, onTap: () => notifier.inputDigit('0')),
+            _CalcButton(
+              label: '0',
+              flex: 2,
+              onTap: () => notifier.inputDigit('0'),
+            ),
             _CalcButton(label: '.', onTap: notifier.inputDecimal),
-            _CalcButton(label: '=', type: _ButtonType.operation, onTap: notifier.calculate),
+            _CalcButton(
+              label: '=',
+              type: _ButtonType.operation,
+              onTap: notifier.calculate,
+            ),
           ]),
         ],
       ),
@@ -152,13 +188,16 @@ class _ButtonGrid extends ConsumerWidget {
   Widget _buildRow(List<_CalcButton> buttons) {
     return Expanded(
       child: Row(
-        children: buttons
-            .expand((btn) => [
-                  Expanded(flex: btn.flex, child: btn),
-                  const SizedBox(width: 12),
-                ])
-            .toList()
-          ..removeLast(),
+        children:
+            buttons
+                .expand(
+                  (btn) => [
+                    Expanded(flex: btn.flex, child: btn),
+                    const SizedBox(width: 12),
+                  ],
+                )
+                .toList()
+              ..removeLast(),
       ),
     );
   }
@@ -182,8 +221,11 @@ class _CalcButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (bg, fg) = switch (type) {
-      _ButtonType.number => (AppColors.backgroundSecondary, AppColors.textPrimary),
-      _ButtonType.operation => (AppColors.primary, AppColors.onPrimary),
+      _ButtonType.number => (
+        AppColors.backgroundSecondary,
+        AppColors.textPrimary,
+      ),
+      _ButtonType.operation => (AppColors.primaryStrong, AppColors.onPrimary),
       _ButtonType.function => (AppColors.border, AppColors.textPrimary),
     };
 

@@ -43,7 +43,7 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
   Future<void> _complete() async {
     await ref.read(setHasSeenOnboardingProvider)(true);
     if (!mounted) return;
-    context.go('/home');
+    context.go('/login');
   }
 
   @override
@@ -102,12 +102,20 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
               color: AppColors.primaryLight,
               shape: BoxShape.circle,
             ),
-            child: Icon(slide.icon, size: 72, color: AppColors.primary),
+            child: Icon(slide.icon, size: 72, color: AppColors.primaryStrong),
           ),
           const SizedBox(height: 40),
-          Text(slide.title, style: AppTextStyles.heading1, textAlign: TextAlign.center),
+          Text(
+            slide.title,
+            style: AppTextStyles.heading1,
+            textAlign: TextAlign.center,
+          ),
           const SizedBox(height: 12),
-          Text(slide.subtitle, style: AppTextStyles.bodySecondary, textAlign: TextAlign.center),
+          Text(
+            slide.subtitle,
+            style: AppTextStyles.bodySecondary,
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
@@ -124,7 +132,9 @@ class _OnboardingPageState extends ConsumerState<OnboardingPage> {
           width: index == _currentPage ? 24 : 8,
           height: 8,
           decoration: BoxDecoration(
-            color: index == _currentPage ? AppColors.primary : AppColors.border,
+            color: index == _currentPage
+                ? AppColors.primaryStrong
+                : AppColors.border,
             borderRadius: BorderRadius.circular(4),
           ),
         ),

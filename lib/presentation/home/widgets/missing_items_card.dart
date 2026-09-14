@@ -61,8 +61,12 @@ class MissingItemsCard extends ConsumerWidget {
   }
 
   Widget _buildRow(PantryItem item, AsyncValue products) {
-    final productMatches = products.valueOrNull?.where((p) => p.id == item.productId);
-    final product = (productMatches != null && productMatches.isNotEmpty) ? productMatches.first : null;
+    final productMatches = products.valueOrNull?.where(
+      (p) => p.id == item.productId,
+    );
+    final product = (productMatches != null && productMatches.isNotEmpty)
+        ? productMatches.first
+        : null;
     final color = item.stockRatio < 0.5 ? AppColors.error : AppColors.warning;
 
     return Padding(
@@ -72,10 +76,7 @@ class MissingItemsCard extends ConsumerWidget {
           Container(
             width: 8,
             height: 8,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
           ),
           const SizedBox(width: 8),
           Expanded(

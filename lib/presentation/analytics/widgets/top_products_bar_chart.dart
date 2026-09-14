@@ -29,10 +29,8 @@ class TopProductsBarChart extends ConsumerWidget {
             Text('Top 10 produtos', style: AppTextStyles.heading2),
             const SizedBox(height: 16),
             topProducts.when(
-              loading: () => const SizedBox(
-                height: 200,
-                child: AppLoadingState(),
-              ),
+              loading: () =>
+                  const SizedBox(height: 200, child: AppLoadingState()),
               error: (e, _) => AppErrorState(
                 message: 'Erro ao carregar dados',
                 onRetry: () => ref.invalidate(topProductsProvider),
@@ -96,7 +94,7 @@ class TopProductsBarChart extends ConsumerWidget {
                     child: LinearProgressIndicator(
                       value: ratio,
                       backgroundColor: AppColors.backgroundSecondary,
-                      color: AppColors.primary,
+                      color: AppColors.primaryStrong,
                       minHeight: 16,
                     ),
                   ),

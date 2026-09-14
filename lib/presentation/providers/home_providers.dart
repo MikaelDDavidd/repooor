@@ -6,10 +6,7 @@ import 'product_providers.dart';
 import 'purchase_providers.dart';
 
 class PantrySummary {
-  const PantrySummary({
-    required this.totalItems,
-    required this.lowStockCount,
-  });
+  const PantrySummary({required this.totalItems, required this.lowStockCount});
 
   final int totalItems;
   final int lowStockCount;
@@ -53,6 +50,7 @@ final hasProductsProvider = FutureProvider<bool>((ref) async {
 
 final topLowStockProvider = FutureProvider<List<PantryItem>>((ref) async {
   final items = await ref.watch(pantryProvider.future);
-  final sorted = items.toList()..sort((a, b) => a.stockRatio.compareTo(b.stockRatio));
+  final sorted = items.toList()
+    ..sort((a, b) => a.stockRatio.compareTo(b.stockRatio));
   return sorted.take(5).toList();
 });

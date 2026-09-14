@@ -10,6 +10,7 @@ import '../shared/widgets/app_loading_state.dart';
 import '../shared/widgets/confirm_dialog.dart';
 import 'purchase_create_dialog.dart';
 import 'purchase_detail_page.dart';
+import 'widgets/purchase_total_chip.dart';
 
 class PurchasePage extends ConsumerWidget {
   const PurchasePage({super.key});
@@ -57,9 +58,10 @@ class PurchasePage extends ConsumerWidget {
               final purchase = items[index];
               return Card(
                 child: InkWell(
-                  onTap: () => Navigator.of(context).push(
+                  onTap: () => Navigator.of(context, rootNavigator: true).push(
                     MaterialPageRoute(
-                      builder: (_) => PurchaseDetailPage(purchaseId: purchase.id),
+                      builder: (_) =>
+                          PurchaseDetailPage(purchaseId: purchase.id),
                     ),
                   ),
                   borderRadius: BorderRadius.circular(12),
@@ -78,7 +80,7 @@ class PurchasePage extends ConsumerWidget {
                             purchase.type == PurchaseType.main
                                 ? Icons.shopping_cart
                                 : Icons.shopping_bag_outlined,
-                            color: AppColors.primary,
+                            color: AppColors.primaryStrong,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -86,7 +88,10 @@ class PurchasePage extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(_typeLabel(purchase.type), style: AppTextStyles.body),
+                              Text(
+                                _typeLabel(purchase.type),
+                                style: AppTextStyles.body,
+                              ),
                               const SizedBox(height: 2),
                               Text(
                                 '${_formatDate(purchase.date)} · ${purchase.totalItems} itens',
@@ -95,6 +100,14 @@ class PurchasePage extends ConsumerWidget {
                             ],
                           ),
                         ),
+                        if (purchase.totalPrice != null) ...[
+                          PurchaseTotalChip(
+                            total: purchase.totalPrice,
+                            partial:
+                                purchase.pricedItemCount != purchase.totalItems,
+                          ),
+                          const SizedBox(width: 4),
+                        ],
                         IconButton(
                           icon: const Icon(Icons.delete_outline, size: 20),
                           color: AppColors.textSecondary,
@@ -102,12 +115,15 @@ class PurchasePage extends ConsumerWidget {
                             final confirmed = await ConfirmDialog.show(
                               context,
                               title: 'Deletar compra',
-                              content: 'Tem certeza? A compra não poderá ser recuperada.',
+                              content:
+                                  'Tem certeza? A compra não poderá ser recuperada.',
                               confirmLabel: 'Deletar',
                               isDestructive: true,
                             );
                             if (confirmed == true) {
-                              ref.read(purchasesProvider.notifier).remove(purchase.id);
+                              ref
+                                  .read(purchasesProvider.notifier)
+                                  .remove(purchase.id);
                             }
                           },
                         ),
@@ -120,10 +136,13 @@ class PurchasePage extends ConsumerWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.small(
+        heroTag: 'purchase_create_fab',
         onPressed: () => PurchaseCreateDialog.show(context),
+        tooltip: 'Criar compra manual',
         child: const Icon(Icons.add),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
     );
   }
 }

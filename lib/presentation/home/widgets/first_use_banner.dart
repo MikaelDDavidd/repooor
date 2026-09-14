@@ -30,7 +30,7 @@ class FirstUseBanner extends StatelessWidget {
       width: 44,
       height: 44,
       decoration: const BoxDecoration(
-        color: AppColors.primary,
+        color: AppColors.primaryStrong,
         shape: BoxShape.circle,
       ),
       child: const Icon(Icons.lightbulb, color: AppColors.onPrimary, size: 24),

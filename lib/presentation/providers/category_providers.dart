@@ -10,9 +10,10 @@ import 'package:uuid/uuid.dart';
 
 const _uuid = Uuid();
 
-final categoriesProvider = AsyncNotifierProvider<CategoriesNotifier, List<Category>>(
-  CategoriesNotifier.new,
-);
+final categoriesProvider =
+    AsyncNotifierProvider<CategoriesNotifier, List<Category>>(
+      CategoriesNotifier.new,
+    );
 
 class CategoriesNotifier extends AsyncNotifier<List<Category>> {
   GetAllCategories get _getAll => ref.watch(getAllCategoriesProvider);
@@ -32,7 +33,12 @@ class CategoriesNotifier extends AsyncNotifier<List<Category>> {
   }
 
   Future<void> add(String name, int icon, int color) async {
-    final category = Category(id: _uuid.v4(), name: name, icon: icon, color: color);
+    final category = Category(
+      id: _uuid.v4(),
+      name: name,
+      icon: icon,
+      color: color,
+    );
     await _create(category);
     ref.invalidateSelf();
   }

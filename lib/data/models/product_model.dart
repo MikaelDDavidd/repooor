@@ -32,20 +32,19 @@ class ProductModel {
   }
 
   Map<String, dynamic> toMap() {
+    return {'id': id, 'name': name, 'category_id': categoryId, 'unit': unit};
+  }
+
+  Map<String, dynamic> toRemoteMap({required int updatedAt}) {
     return {
-      'id': id,
       'name': name,
-      'category_id': categoryId,
+      'categoryId': categoryId,
       'unit': unit,
+      'updatedAt': updatedAt,
     };
   }
 
   Product toEntity() {
-    return Product(
-      id: id,
-      name: name,
-      categoryId: categoryId,
-      unit: unit,
-    );
+    return Product(id: id, name: name, categoryId: categoryId, unit: unit);
   }
 }

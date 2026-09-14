@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/constants/category_palette.dart';
 import '../../core/theme/app_colors.dart';
 import '../../domain/entities/category.dart';
 import '../providers/category_providers.dart';
@@ -37,46 +38,13 @@ class _CategoryFormDialogState extends ConsumerState<CategoryFormDialog> {
 
   bool get _isEditing => widget.category != null;
 
-  static const _availableIcons = [
-    Icons.apple,
-    Icons.eco,
-    Icons.set_meal,
-    Icons.egg_alt,
-    Icons.local_drink,
-    Icons.cleaning_services,
-    Icons.sanitizer,
-    Icons.grain,
-    Icons.ac_unit,
-    Icons.category,
-    Icons.bakery_dining,
-    Icons.cookie,
-    Icons.coffee,
-    Icons.local_pizza,
-    Icons.icecream,
-    Icons.pets,
-  ];
-
-  static const _availableColors = [
-    Color(0xFFE74C3C),
-    Color(0xFF27AE60),
-    Color(0xFFC0392B),
-    Color(0xFFF39C12),
-    Color(0xFF3498DB),
-    Color(0xFF9B59B6),
-    Color(0xFF1ABC9C),
-    Color(0xFFE67E22),
-    Color(0xFF2980B9),
-    Color(0xFF95A5A6),
-    Color(0xFFE91E63),
-    Color(0xFF607D8B),
-  ];
-
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.category?.name ?? '');
     _selectedIcon = widget.category?.icon ?? Icons.category.codePoint;
-    _selectedColor = widget.category?.color ?? _availableColors.first.toARGB32();
+    _selectedColor =
+        widget.category?.color ?? categoryColorOptions.first.toARGB32();
   }
 
   @override
@@ -91,11 +59,13 @@ class _CategoryFormDialogState extends ConsumerState<CategoryFormDialog> {
     final notifier = ref.read(categoriesProvider.notifier);
 
     if (_isEditing) {
-      await notifier.edit(widget.category!.copyWith(
-        name: _nameController.text.trim(),
-        icon: _selectedIcon,
-        color: _selectedColor,
-      ));
+      await notifier.edit(
+        widget.category!.copyWith(
+          name: _nameController.text.trim(),
+          icon: _selectedIcon,
+          color: _selectedColor,
+        ),
+      );
     } else {
       await notifier.add(
         _nameController.text.trim(),
@@ -137,7 +107,8 @@ class _CategoryFormDialogState extends ConsumerState<CategoryFormDialog> {
               controller: _nameController,
               decoration: const InputDecoration(labelText: 'Nome da categoria'),
               textCapitalization: TextCapitalization.sentences,
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Informe o nome' : null,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Informe o nome' : null,
             ),
             const SizedBox(height: 20),
             const Text('Ícone'),
@@ -145,7 +116,7 @@ class _CategoryFormDialogState extends ConsumerState<CategoryFormDialog> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _availableIcons.map((icon) {
+              children: categoryIconOptions.map((icon) {
                 final isSelected = icon.codePoint == _selectedIcon;
                 return GestureDetector(
                   onTap: () => setState(() => _selectedIcon = icon.codePoint),
@@ -153,13 +124,20 @@ class _CategoryFormDialogState extends ConsumerState<CategoryFormDialog> {
                     width: 44,
                     height: 44,
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primaryLight : AppColors.backgroundSecondary,
+                      color: isSelected
+                          ? AppColors.primaryLight
+                          : AppColors.backgroundSecondary,
                       borderRadius: BorderRadius.circular(10),
                       border: isSelected
-                          ? Border.all(color: AppColors.primary, width: 2)
+                          ? Border.all(color: AppColors.primaryStrong, width: 2)
                           : null,
                     ),
-                    child: Icon(icon, color: isSelected ? AppColors.primary : AppColors.textSecondary),
+                    child: Icon(
+                      icon,
+                      color: isSelected
+                          ? AppColors.primaryStrong
+                          : AppColors.textSecondary,
+                    ),
                   ),
                 );
               }).toList(),
@@ -170,10 +148,11 @@ class _CategoryFormDialogState extends ConsumerState<CategoryFormDialog> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: _availableColors.map((color) {
+              children: categoryColorOptions.map((color) {
                 final isSelected = color.toARGB32() == _selectedColor;
                 return GestureDetector(
-                  onTap: () => setState(() => _selectedColor = color.toARGB32()),
+                  onTap: () =>
+                      setState(() => _selectedColor = color.toARGB32()),
                   child: Container(
                     width: 36,
                     height: 36,
@@ -185,7 +164,11 @@ class _CategoryFormDialogState extends ConsumerState<CategoryFormDialog> {
                           : null,
                     ),
                     child: isSelected
-                        ? const Icon(Icons.check, color: AppColors.onPrimary, size: 18)
+                        ? const Icon(
+                            Icons.check,
+                            color: AppColors.onPrimary,
+                            size: 18,
+                          )
                         : null,
                   ),
                 );

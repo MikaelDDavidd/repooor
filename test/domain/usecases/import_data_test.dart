@@ -22,13 +22,17 @@ void main() {
           {'id': 'p1', 'name': 'Arroz', 'categoryId': 'cat-1', 'unit': 'kg'},
         ],
         'categories': [
-          {'id': 'cat-1', 'name': 'Graos', 'icon': '0xe318', 'color': 'FF53B175'},
+          {
+            'id': 'cat-1',
+            'name': 'Graos',
+            'icon': '0xe318',
+            'color': 'FF53B175',
+          },
         ],
         'pantry_items': [],
         'purchases': [],
       };
-      when(() => mockRepository.importAll(data))
-          .thenAnswer((_) async {});
+      when(() => mockRepository.importAll(data)).thenAnswer((_) async {});
 
       // Act
       await usecase.call(data);
@@ -40,8 +44,7 @@ void main() {
     test('should pass empty map correctly to repository', () async {
       // Arrange
       final data = <String, dynamic>{};
-      when(() => mockRepository.importAll(data))
-          .thenAnswer((_) async {});
+      when(() => mockRepository.importAll(data)).thenAnswer((_) async {});
 
       // Act
       await usecase.call(data);
@@ -53,8 +56,9 @@ void main() {
     test('should rethrow when repository throws', () async {
       // Arrange
       final data = <String, dynamic>{'products': []};
-      when(() => mockRepository.importAll(data))
-          .thenThrow(Exception('Import failed'));
+      when(
+        () => mockRepository.importAll(data),
+      ).thenThrow(Exception('Import failed'));
 
       // Act & Assert
       expect(() => usecase.call(data), throwsException);

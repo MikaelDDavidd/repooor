@@ -22,12 +22,20 @@ class CategoryLocalDs {
 
   Future<void> insert(CategoryModel model) async {
     final db = await _db;
-    await db.insert(_table, model.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert(_table, {
+      ...model.toMap(),
+      'updated_at': DateTime.now().millisecondsSinceEpoch,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<void> update(CategoryModel model) async {
     final db = await _db;
-    await db.update(_table, model.toMap(), where: 'id = ?', whereArgs: [model.id]);
+    await db.update(
+      _table,
+      {...model.toMap(), 'updated_at': DateTime.now().millisecondsSinceEpoch},
+      where: 'id = ?',
+      whereArgs: [model.id],
+    );
   }
 
   Future<void> delete(String id) async {
@@ -39,7 +47,10 @@ class CategoryLocalDs {
     final db = await _db;
     final batch = db.batch();
     for (final model in models) {
-      batch.insert(_table, model.toMap(), conflictAlgorithm: ConflictAlgorithm.ignore);
+      batch.insert(_table, {
+        ...model.toMap(),
+        'updated_at': DateTime.now().millisecondsSinceEpoch,
+      }, conflictAlgorithm: ConflictAlgorithm.ignore);
     }
     await batch.commit(noResult: true);
   }

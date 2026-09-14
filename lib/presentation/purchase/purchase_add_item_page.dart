@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/product.dart';
-import '../providers/category_providers.dart';
 import '../providers/product_providers.dart';
 import '../providers/purchase_providers.dart';
 import '../shared/widgets/app_loading_state.dart';
+import '../shared/widgets/price_field.dart';
 import '../shared/widgets/product_picker_dialog.dart';
 import '../shared/widgets/quantity_field.dart';
 
@@ -14,17 +15,20 @@ class PurchaseAddItemPage extends ConsumerStatefulWidget {
   final String purchaseId;
 
   @override
-  ConsumerState<PurchaseAddItemPage> createState() => _PurchaseAddItemPageState();
+  ConsumerState<PurchaseAddItemPage> createState() =>
+      _PurchaseAddItemPageState();
 }
 
 class _PurchaseAddItemPageState extends ConsumerState<PurchaseAddItemPage> {
   Product? _selectedProduct;
   final _qtyController = TextEditingController(text: '1');
+  final _priceController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   @override
   void dispose() {
     _qtyController.dispose();
+    _priceController.dispose();
     super.dispose();
   }
 
@@ -34,7 +38,11 @@ class _PurchaseAddItemPageState extends ConsumerState<PurchaseAddItemPage> {
 
     await ref
         .read(purchaseItemsProvider(widget.purchaseId).notifier)
-        .addItem(_selectedProduct!.id, double.tryParse(_qtyController.text) ?? 1);
+        .addItem(
+          _selectedProduct!.id,
+          double.tryParse(_qtyController.text) ?? 1,
+          unitPrice: PriceField.parse(_priceController),
+        );
 
     if (mounted) Navigator.of(context).pop();
   }
@@ -42,29 +50,24 @@ class _PurchaseAddItemPageState extends ConsumerState<PurchaseAddItemPage> {
   @override
   Widget build(BuildContext context) {
     final products = ref.watch(productsProvider);
-    final categories = ref.watch(categoriesProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Adicionar Item')),
       body: products.when(
         loading: () => const AppLoadingState(),
         error: (_, _) => const Center(child: Text('Erro ao carregar produtos')),
-        data: (prods) => Form(
+        data: (_) => Form(
           key: _formKey,
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
               FormField<Product>(
                 initialValue: _selectedProduct,
-                validator: (_) => _selectedProduct == null ? 'Selecione um produto' : null,
+                validator: (_) =>
+                    _selectedProduct == null ? 'Selecione um produto' : null,
                 builder: (field) => InkWell(
                   onTap: () async {
-                    final cats = categories.valueOrNull ?? [];
-                    final result = await ProductPickerDialog.show(
-                      context,
-                      products: prods,
-                      categories: cats,
-                    );
+                    final result = await ProductPickerDialog.show(context);
                     if (result != null) {
                       setState(() => _selectedProduct = result);
                       field.didChange(result);
@@ -78,7 +81,9 @@ class _PurchaseAddItemPageState extends ConsumerState<PurchaseAddItemPage> {
                     ),
                     child: Text(
                       _selectedProduct?.name ?? 'Selecione um produto',
-                      style: _selectedProduct != null ? null : const TextStyle(color: Colors.grey),
+                      style: _selectedProduct != null
+                          ? null
+                          : const TextStyle(color: AppColors.textSecondary),
                     ),
                   ),
                 ),
@@ -93,11 +98,10 @@ class _PurchaseAddItemPageState extends ConsumerState<PurchaseAddItemPage> {
                   return n == null || n <= 0 ? 'Informe um valor válido' : null;
                 },
               ),
+              const SizedBox(height: 16),
+              PriceField(controller: _priceController),
               const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: _add,
-                child: const Text('Adicionar'),
-              ),
+              ElevatedButton(onPressed: _add, child: const Text('Adicionar')),
             ],
           ),
         ),

@@ -29,10 +29,8 @@ class CategoryPieChart extends ConsumerWidget {
             Text('Consumo por categoria', style: AppTextStyles.heading2),
             const SizedBox(height: 16),
             consumption.when(
-              loading: () => const SizedBox(
-                height: 200,
-                child: AppLoadingState(),
-              ),
+              loading: () =>
+                  const SizedBox(height: 200, child: AppLoadingState()),
               error: (e, _) => AppErrorState(
                 message: 'Erro ao carregar dados',
                 onRetry: () => ref.invalidate(consumptionByCategoryProvider),
@@ -77,8 +75,9 @@ class CategoryPieChart extends ConsumerWidget {
               centerSpaceRadius: 40,
               sections: entries.map((entry) {
                 final cat = catMap[entry.key];
-                final color =
-                    cat != null ? Color(cat.color) : AppColors.textSecondary;
+                final color = cat != null
+                    ? Color(cat.color)
+                    : AppColors.textSecondary;
                 final percentage = total > 0 ? (entry.value / total * 100) : 0;
                 return PieChartSectionData(
                   value: entry.value,
@@ -94,8 +93,9 @@ class CategoryPieChart extends ConsumerWidget {
         const SizedBox(height: 16),
         ...entries.map((entry) {
           final cat = catMap[entry.key];
-          final color =
-              cat != null ? Color(cat.color) : AppColors.textSecondary;
+          final color = cat != null
+              ? Color(cat.color)
+              : AppColors.textSecondary;
           return _buildLegendItem(
             color: color,
             name: cat?.name ?? 'Sem categoria',
@@ -114,8 +114,7 @@ class CategoryPieChart extends ConsumerWidget {
     required String categoryId,
   }) {
     return InkWell(
-      onTap:
-          onCategoryTap != null ? () => onCategoryTap!(categoryId) : null,
+      onTap: onCategoryTap != null ? () => onCategoryTap!(categoryId) : null,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
@@ -126,13 +125,8 @@ class CategoryPieChart extends ConsumerWidget {
               decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             ),
             const SizedBox(width: 8),
-            Expanded(
-              child: Text(name, style: AppTextStyles.body),
-            ),
-            Text(
-              value.toStringAsFixed(0),
-              style: AppTextStyles.bodySecondary,
-            ),
+            Expanded(child: Text(name, style: AppTextStyles.body)),
+            Text(value.toStringAsFixed(0), style: AppTextStyles.bodySecondary),
           ],
         ),
       ),

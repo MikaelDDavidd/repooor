@@ -1,10 +1,7 @@
 import '../repositories/purchase_repository.dart';
 
 class ProductConsumptionPoint {
-  const ProductConsumptionPoint({
-    required this.date,
-    required this.quantity,
-  });
+  const ProductConsumptionPoint({required this.date, required this.quantity});
 
   final DateTime date;
   final double quantity;
@@ -26,10 +23,12 @@ class GetConsumptionByProduct {
     for (final purchase in purchases) {
       for (final item in purchase.items) {
         if (item.productId == productId) {
-          points.add(ProductConsumptionPoint(
-            date: purchase.date,
-            quantity: item.quantity,
-          ));
+          points.add(
+            ProductConsumptionPoint(
+              date: purchase.date,
+              quantity: item.quantity,
+            ),
+          );
         }
       }
     }

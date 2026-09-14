@@ -10,6 +10,7 @@ import '../providers/product_providers.dart';
 import '../shared/widgets/app_empty_state.dart';
 import '../shared/widgets/app_error_state.dart';
 import '../shared/widgets/app_loading_state.dart';
+import 'widgets/category_spending_card.dart';
 
 class CategoryDetailPage extends ConsumerWidget {
   const CategoryDetailPage({super.key, required this.categoryId});
@@ -22,8 +23,12 @@ class CategoryDetailPage extends ConsumerWidget {
     final products = ref.watch(productsProvider);
     final consumption = ref.watch(consumptionByCategoryProvider);
 
-    final categoryList = categories.valueOrNull?.where((c) => c.id == categoryId);
-    final category = (categoryList != null && categoryList.isNotEmpty) ? categoryList.first : null;
+    final categoryList = categories.valueOrNull?.where(
+      (c) => c.id == categoryId,
+    );
+    final category = (categoryList != null && categoryList.isNotEmpty)
+        ? categoryList.first
+        : null;
 
     return Scaffold(
       appBar: AppBar(title: Text(category?.name ?? 'Categoria')),
@@ -72,12 +77,11 @@ class CategoryDetailPage extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       children: [
         _buildHeader(icon, color, category.name),
+        const SizedBox(height: 16),
+        CategorySpendingCard(categoryId: categoryId),
         const SizedBox(height: 24),
         consumption.when(
-          loading: () => const SizedBox(
-            height: 100,
-            child: AppLoadingState(),
-          ),
+          loading: () => const SizedBox(height: 100, child: AppLoadingState()),
           error: (_, _) => AppErrorState(
             message: 'Erro ao carregar consumo',
             onRetry: () => ref.invalidate(consumptionByCategoryProvider),
@@ -129,8 +133,10 @@ class CategoryDetailPage extends ConsumerWidget {
     }
 
     final sorted = List<Product>.from(products)
-      ..sort((a, b) => (productTotals[b.id] ?? 0)
-          .compareTo(productTotals[a.id] ?? 0));
+      ..sort(
+        (a, b) =>
+            (productTotals[b.id] ?? 0).compareTo(productTotals[a.id] ?? 0),
+      );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,7 +152,9 @@ class CategoryDetailPage extends ConsumerWidget {
               trailing: Text(
                 total > 0 ? total.toStringAsFixed(0) : '-',
                 style: AppTextStyles.body.copyWith(
-                  color: total > 0 ? AppColors.primary : AppColors.textSecondary,
+                  color: total > 0
+                      ? AppColors.primaryStrong
+                      : AppColors.textSecondary,
                 ),
               ),
             ),

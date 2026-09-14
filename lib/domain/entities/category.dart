@@ -11,12 +11,7 @@ class Category {
   final int icon;
   final int color;
 
-  Category copyWith({
-    String? id,
-    String? name,
-    int? icon,
-    int? color,
-  }) {
+  Category copyWith({String? id, String? name, int? icon, int? color}) {
     return Category(
       id: id ?? this.id,
       name: name ?? this.name,

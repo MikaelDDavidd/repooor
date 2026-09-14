@@ -39,81 +39,96 @@ void main() {
         expect(result.idealQuantity, item.idealQuantity);
       });
 
-      test('should return entity with updated productId when productId is passed', () {
-        // Arrange
-        const newProductId = 'prod-42';
+      test(
+        'should return entity with updated productId when productId is passed',
+        () {
+          // Arrange
+          const newProductId = 'prod-42';
 
-        // Act
-        final result = item.copyWith(productId: newProductId);
+          // Act
+          final result = item.copyWith(productId: newProductId);
 
-        // Assert
-        expect(result.productId, newProductId);
-        expect(result.id, item.id);
-      });
+          // Assert
+          expect(result.productId, newProductId);
+          expect(result.id, item.id);
+        },
+      );
 
-      test('should return entity with updated currentQuantity when currentQuantity is passed', () {
-        // Arrange
-        const newQuantity = 7.5;
+      test(
+        'should return entity with updated currentQuantity when currentQuantity is passed',
+        () {
+          // Arrange
+          const newQuantity = 7.5;
 
-        // Act
-        final result = item.copyWith(currentQuantity: newQuantity);
+          // Act
+          final result = item.copyWith(currentQuantity: newQuantity);
 
-        // Assert
-        expect(result.currentQuantity, newQuantity);
-        expect(result.idealQuantity, item.idealQuantity);
-      });
+          // Assert
+          expect(result.currentQuantity, newQuantity);
+          expect(result.idealQuantity, item.idealQuantity);
+        },
+      );
 
-      test('should return entity with updated idealQuantity when idealQuantity is passed', () {
-        // Arrange
-        const newIdeal = 20.0;
+      test(
+        'should return entity with updated idealQuantity when idealQuantity is passed',
+        () {
+          // Arrange
+          const newIdeal = 20.0;
 
-        // Act
-        final result = item.copyWith(idealQuantity: newIdeal);
+          // Act
+          final result = item.copyWith(idealQuantity: newIdeal);
 
-        // Assert
-        expect(result.idealQuantity, newIdeal);
-        expect(result.currentQuantity, item.currentQuantity);
-      });
+          // Assert
+          expect(result.idealQuantity, newIdeal);
+          expect(result.currentQuantity, item.currentQuantity);
+        },
+      );
 
-      test('should return entity with all fields updated when all parameters are passed', () {
-        // Arrange
-        const newId = 'pantry-2';
-        const newProductId = 'prod-2';
-        const newCurrent = 5.0;
-        const newIdeal = 15.0;
+      test(
+        'should return entity with all fields updated when all parameters are passed',
+        () {
+          // Arrange
+          const newId = 'pantry-2';
+          const newProductId = 'prod-2';
+          const newCurrent = 5.0;
+          const newIdeal = 15.0;
 
-        // Act
-        final result = item.copyWith(
-          id: newId,
-          productId: newProductId,
-          currentQuantity: newCurrent,
-          idealQuantity: newIdeal,
-        );
+          // Act
+          final result = item.copyWith(
+            id: newId,
+            productId: newProductId,
+            currentQuantity: newCurrent,
+            idealQuantity: newIdeal,
+          );
 
-        // Assert
-        expect(result.id, newId);
-        expect(result.productId, newProductId);
-        expect(result.currentQuantity, newCurrent);
-        expect(result.idealQuantity, newIdeal);
-      });
+          // Assert
+          expect(result.id, newId);
+          expect(result.productId, newProductId);
+          expect(result.currentQuantity, newCurrent);
+          expect(result.idealQuantity, newIdeal);
+        },
+      );
     });
 
     group('stockRatio', () {
-      test('should return correct ratio when idealQuantity is greater than zero', () {
-        // Arrange
-        const pantryItem = PantryItem(
-          id: 'p-1',
-          productId: 'prod-1',
-          currentQuantity: 5.0,
-          idealQuantity: 10.0,
-        );
+      test(
+        'should return correct ratio when idealQuantity is greater than zero',
+        () {
+          // Arrange
+          const pantryItem = PantryItem(
+            id: 'p-1',
+            productId: 'prod-1',
+            currentQuantity: 5.0,
+            idealQuantity: 10.0,
+          );
 
-        // Act
-        final result = pantryItem.stockRatio;
+          // Act
+          final result = pantryItem.stockRatio;
 
-        // Assert
-        expect(result, 0.5);
-      });
+          // Assert
+          expect(result, 0.5);
+        },
+      );
 
       test('should return 1.0 when idealQuantity is zero', () {
         // Arrange
@@ -131,21 +146,24 @@ void main() {
         expect(result, 1.0);
       });
 
-      test('should return ratio greater than 1 when currentQuantity exceeds idealQuantity', () {
-        // Arrange
-        const pantryItem = PantryItem(
-          id: 'p-1',
-          productId: 'prod-1',
-          currentQuantity: 15.0,
-          idealQuantity: 10.0,
-        );
+      test(
+        'should return ratio greater than 1 when currentQuantity exceeds idealQuantity',
+        () {
+          // Arrange
+          const pantryItem = PantryItem(
+            id: 'p-1',
+            productId: 'prod-1',
+            currentQuantity: 15.0,
+            idealQuantity: 10.0,
+          );
 
-        // Act
-        final result = pantryItem.stockRatio;
+          // Act
+          final result = pantryItem.stockRatio;
 
-        // Assert
-        expect(result, 1.5);
-      });
+          // Assert
+          expect(result, 1.5);
+        },
+      );
 
       test('should return 0 when currentQuantity is zero', () {
         // Arrange
@@ -347,21 +365,24 @@ void main() {
     });
 
     group('deficit', () {
-      test('should return difference when currentQuantity is less than idealQuantity', () {
-        // Arrange
-        const pantryItem = PantryItem(
-          id: 'p-1',
-          productId: 'prod-1',
-          currentQuantity: 3.0,
-          idealQuantity: 10.0,
-        );
+      test(
+        'should return difference when currentQuantity is less than idealQuantity',
+        () {
+          // Arrange
+          const pantryItem = PantryItem(
+            id: 'p-1',
+            productId: 'prod-1',
+            currentQuantity: 3.0,
+            idealQuantity: 10.0,
+          );
 
-        // Act
-        final result = pantryItem.deficit;
+          // Act
+          final result = pantryItem.deficit;
 
-        // Assert
-        expect(result, 7.0);
-      });
+          // Assert
+          expect(result, 7.0);
+        },
+      );
 
       test('should return 0 when currentQuantity equals idealQuantity', () {
         // Arrange

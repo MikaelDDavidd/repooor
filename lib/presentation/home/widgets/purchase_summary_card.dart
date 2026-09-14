@@ -57,7 +57,7 @@ class PurchaseSummaryCard extends ConsumerWidget {
           ),
           child: const Icon(
             Icons.shopping_cart_outlined,
-            color: AppColors.primary,
+            color: AppColors.primaryStrong,
           ),
         ),
         const SizedBox(width: 16),

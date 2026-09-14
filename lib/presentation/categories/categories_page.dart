@@ -45,6 +45,7 @@ class CategoriesPage extends ConsumerWidget {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: null,
         onPressed: () => CategoryFormDialog.show(context),
         child: const Icon(Icons.add),
       ),
@@ -81,7 +82,8 @@ class _CategoryTile extends ConsumerWidget {
             IconButton(
               icon: const Icon(Icons.edit_outlined, size: 20),
               color: AppColors.textSecondary,
-              onPressed: () => CategoryFormDialog.show(context, category: category),
+              onPressed: () =>
+                  CategoryFormDialog.show(context, category: category),
             ),
             IconButton(
               icon: const Icon(Icons.delete_outline, size: 20),

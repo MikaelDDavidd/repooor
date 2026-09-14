@@ -58,38 +58,44 @@ void main() {
     });
 
     group('fromMap', () {
-      test('should return a valid model when map contains all required fields', () {
-        // Arrange
-        // (map already defined above)
+      test(
+        'should return a valid model when map contains all required fields',
+        () {
+          // Arrange
+          // (map already defined above)
 
-        // Act
-        final result = PantryItemModel.fromMap(map);
+          // Act
+          final result = PantryItemModel.fromMap(map);
 
-        // Assert
-        expect(result.id, 'pantry-1');
-        expect(result.productId, 'prod-1');
-        expect(result.currentQuantity, 3.0);
-        expect(result.idealQuantity, 10.0);
-      });
+          // Assert
+          expect(result.id, 'pantry-1');
+          expect(result.productId, 'prod-1');
+          expect(result.currentQuantity, 3.0);
+          expect(result.idealQuantity, 10.0);
+        },
+      );
 
-      test('should handle int values for quantity fields when map has int types', () {
-        // Arrange
-        final intMap = <String, dynamic>{
-          'id': 'pantry-2',
-          'product_id': 'prod-2',
-          'current_quantity': 5,
-          'ideal_quantity': 12,
-        };
+      test(
+        'should handle int values for quantity fields when map has int types',
+        () {
+          // Arrange
+          final intMap = <String, dynamic>{
+            'id': 'pantry-2',
+            'product_id': 'prod-2',
+            'current_quantity': 5,
+            'ideal_quantity': 12,
+          };
 
-        // Act
-        final result = PantryItemModel.fromMap(intMap);
+          // Act
+          final result = PantryItemModel.fromMap(intMap);
 
-        // Assert
-        expect(result.currentQuantity, 5.0);
-        expect(result.idealQuantity, 12.0);
-        expect(result.currentQuantity, isA<double>());
-        expect(result.idealQuantity, isA<double>());
-      });
+          // Assert
+          expect(result.currentQuantity, 5.0);
+          expect(result.idealQuantity, 12.0);
+          expect(result.currentQuantity, isA<double>());
+          expect(result.idealQuantity, isA<double>());
+        },
+      );
     });
 
     group('toEntity', () {
@@ -109,65 +115,74 @@ void main() {
     });
 
     group('fromEntity', () {
-      test('should return a PantryItemModel with matching fields from entity', () {
-        // Arrange
-        // (entity already defined above)
+      test(
+        'should return a PantryItemModel with matching fields from entity',
+        () {
+          // Arrange
+          // (entity already defined above)
 
-        // Act
-        final result = PantryItemModel.fromEntity(entity);
+          // Act
+          final result = PantryItemModel.fromEntity(entity);
 
-        // Assert
-        expect(result.id, entity.id);
-        expect(result.productId, entity.productId);
-        expect(result.currentQuantity, entity.currentQuantity);
-        expect(result.idealQuantity, entity.idealQuantity);
-      });
+          // Assert
+          expect(result.id, entity.id);
+          expect(result.productId, entity.productId);
+          expect(result.currentQuantity, entity.currentQuantity);
+          expect(result.idealQuantity, entity.idealQuantity);
+        },
+      );
     });
 
     group('round-trip', () {
-      test('should preserve all data through entity -> model -> map -> model -> entity', () {
-        // Arrange
-        const originalEntity = PantryItem(
-          id: 'pantry-rt',
-          productId: 'prod-rt',
-          currentQuantity: 4.5,
-          idealQuantity: 8.0,
-        );
+      test(
+        'should preserve all data through entity -> model -> map -> model -> entity',
+        () {
+          // Arrange
+          const originalEntity = PantryItem(
+            id: 'pantry-rt',
+            productId: 'prod-rt',
+            currentQuantity: 4.5,
+            idealQuantity: 8.0,
+          );
 
-        // Act
-        final modelFromEntity = PantryItemModel.fromEntity(originalEntity);
-        final mapFromModel = modelFromEntity.toMap();
-        final modelFromMap = PantryItemModel.fromMap(mapFromModel);
-        final finalEntity = modelFromMap.toEntity();
+          // Act
+          final modelFromEntity = PantryItemModel.fromEntity(originalEntity);
+          final mapFromModel = modelFromEntity.toMap();
+          final modelFromMap = PantryItemModel.fromMap(mapFromModel);
+          final finalEntity = modelFromMap.toEntity();
 
-        // Assert
-        expect(finalEntity.id, originalEntity.id);
-        expect(finalEntity.productId, originalEntity.productId);
-        expect(finalEntity.currentQuantity, originalEntity.currentQuantity);
-        expect(finalEntity.idealQuantity, originalEntity.idealQuantity);
-      });
+          // Assert
+          expect(finalEntity.id, originalEntity.id);
+          expect(finalEntity.productId, originalEntity.productId);
+          expect(finalEntity.currentQuantity, originalEntity.currentQuantity);
+          expect(finalEntity.idealQuantity, originalEntity.idealQuantity);
+        },
+      );
 
-      test('should preserve all data through map -> model -> entity -> model -> map', () {
-        // Arrange
-        final originalMap = <String, dynamic>{
-          'id': 'pantry-rt2',
-          'product_id': 'prod-rt2',
-          'current_quantity': 1.5,
-          'ideal_quantity': 6.0,
-        };
+      test(
+        'should preserve all data through map -> model -> entity -> model -> map',
+        () {
+          // Arrange
+          final originalMap = <String, dynamic>{
+            'id': 'pantry-rt2',
+            'product_id': 'prod-rt2',
+            'current_quantity': 1.5,
+            'ideal_quantity': 6.0,
+          };
 
-        // Act
-        final modelFromMap = PantryItemModel.fromMap(originalMap);
-        final entityFromModel = modelFromMap.toEntity();
-        final modelFromEntity = PantryItemModel.fromEntity(entityFromModel);
-        final finalMap = modelFromEntity.toMap();
+          // Act
+          final modelFromMap = PantryItemModel.fromMap(originalMap);
+          final entityFromModel = modelFromMap.toEntity();
+          final modelFromEntity = PantryItemModel.fromEntity(entityFromModel);
+          final finalMap = modelFromEntity.toMap();
 
-        // Assert
-        expect(finalMap['id'], originalMap['id']);
-        expect(finalMap['product_id'], originalMap['product_id']);
-        expect(finalMap['current_quantity'], originalMap['current_quantity']);
-        expect(finalMap['ideal_quantity'], originalMap['ideal_quantity']);
-      });
+          // Assert
+          expect(finalMap['id'], originalMap['id']);
+          expect(finalMap['product_id'], originalMap['product_id']);
+          expect(finalMap['current_quantity'], originalMap['current_quantity']);
+          expect(finalMap['ideal_quantity'], originalMap['ideal_quantity']);
+        },
+      );
     });
   });
 }

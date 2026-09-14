@@ -21,11 +21,8 @@ class PantrySummaryCard extends ConsumerWidget {
           child: summary.when(
             loading: () => _buildContent(context, null, null),
             error: (_, _) => _buildError(),
-            data: (data) => _buildContent(
-              context,
-              data.totalItems,
-              data.lowStockCount,
-            ),
+            data: (data) =>
+                _buildContent(context, data.totalItems, data.lowStockCount),
           ),
         ),
       ),
@@ -42,7 +39,10 @@ class PantrySummaryCard extends ConsumerWidget {
             color: AppColors.primaryLight,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(Icons.kitchen_outlined, color: AppColors.primary),
+          child: const Icon(
+            Icons.kitchen_outlined,
+            color: AppColors.primaryStrong,
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -79,7 +79,10 @@ class PantrySummaryCard extends ConsumerWidget {
             color: AppColors.primaryLight,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(Icons.kitchen_outlined, color: AppColors.primary),
+          child: const Icon(
+            Icons.kitchen_outlined,
+            color: AppColors.primaryStrong,
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(

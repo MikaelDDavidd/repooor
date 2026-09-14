@@ -1,60 +1,46 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../domain/entities/category.dart';
 import '../../../domain/entities/product.dart';
+import '../../providers/product_providers.dart';
+import '../../providers/category_providers.dart';
+import '../../products/product_form_page.dart';
+import '../utils/category_grouping.dart';
+import 'category_section_header.dart';
+import 'confirm_dialog.dart';
 
-class ProductPickerDialog extends StatefulWidget {
-  const ProductPickerDialog({
-    super.key,
-    required this.products,
-    required this.categories,
-  });
+class ProductPickerDialog extends ConsumerStatefulWidget {
+  const ProductPickerDialog({super.key, this.excludeIds = const {}});
 
-  final List<Product> products;
-  final List<Category> categories;
+  final Set<String> excludeIds;
 
   static Future<Product?> show(
     BuildContext context, {
-    required List<Product> products,
-    required List<Category> categories,
+    Set<String> excludeIds = const {},
   }) {
     return Navigator.of(context).push<Product>(
       MaterialPageRoute(
         fullscreenDialog: true,
-        builder: (_) => ProductPickerDialog(
-          products: products,
-          categories: categories,
-        ),
+        builder: (_) => ProductPickerDialog(excludeIds: excludeIds),
       ),
     );
   }
 
   @override
-  State<ProductPickerDialog> createState() => _ProductPickerDialogState();
+  ConsumerState<ProductPickerDialog> createState() =>
+      _ProductPickerDialogState();
 }
 
-class _ProductPickerDialogState extends State<ProductPickerDialog> {
-  static const _headerHeight = 32.0;
-  static const _tileHeight = 72.0;
-
-  final _scrollController = ScrollController();
+class _ProductPickerDialogState extends ConsumerState<ProductPickerDialog> {
   final _searchController = TextEditingController();
   Timer? _debounce;
   String _query = '';
 
-  late final Map<String, Category> _categoryMap;
-
-  @override
-  void initState() {
-    super.initState();
-    _categoryMap = {for (final c in widget.categories) c.id: c};
-  }
-
   @override
   void dispose() {
-    _scrollController.dispose();
     _searchController.dispose();
     _debounce?.cancel();
     super.dispose();
@@ -67,133 +53,147 @@ class _ProductPickerDialogState extends State<ProductPickerDialog> {
     });
   }
 
-  List<Product> get _filtered {
-    final sorted = List<Product>.from(widget.products)
-      ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-    if (_query.isEmpty) return sorted;
-    return sorted.where((p) => p.name.toLowerCase().contains(_query)).toList();
+  List<Product> _filterProducts(List<Product> products) {
+    final available = products
+        .where((p) => !widget.excludeIds.contains(p.id))
+        .toList();
+    if (_query.isEmpty) return available;
+    return available
+        .where((p) => p.name.toLowerCase().contains(_query))
+        .toList();
   }
 
-  Map<String, List<Product>> _groupByLetter(List<Product> products) {
-    final map = <String, List<Product>>{};
-    for (final p in products) {
-      final letter = p.name[0].toUpperCase();
-      map.putIfAbsent(letter, () => []).add(p);
-    }
-    return map;
-  }
-
-  List<String> _availableLetters(Map<String, List<Product>> grouped) {
-    return grouped.keys.toList()..sort();
-  }
-
-  Map<String, double> _letterOffsets(List<String> letters, Map<String, List<Product>> grouped) {
-    final offsets = <String, double>{};
-    var offset = 0.0;
-    for (final letter in letters) {
-      offsets[letter] = offset;
-      offset += _headerHeight + grouped[letter]!.length * _tileHeight;
-    }
-    return offsets;
+  Future<void> _openCreateProduct() async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const ProductFormPage()));
   }
 
   @override
   Widget build(BuildContext context) {
-    final filtered = _filtered;
-    final grouped = _groupByLetter(filtered);
-    final letters = _availableLetters(grouped);
-    final offsets = _letterOffsets(letters, grouped);
+    final productsAsync = ref.watch(productsProvider);
+    final categoriesAsync = ref.watch(categoriesProvider);
 
     return Scaffold(
       backgroundColor: AppColors.backgroundSecondary,
       appBar: AppBar(
-        title: TextField(
-          controller: _searchController,
-          onChanged: _onSearchChanged,
-          decoration: const InputDecoration(
-            hintText: 'Buscar produto...',
-            border: InputBorder.none,
-            hintStyle: TextStyle(color: AppColors.textSecondary),
-          ),
-          style: AppTextStyles.body,
+        leading: IconButton(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.close),
         ),
+        title: const Text('Selecionar Produto'),
       ),
-      body: filtered.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.search_off, size: 64, color: AppColors.textSecondary),
-                  const SizedBox(height: 16),
-                  Text(
-                    _query.isEmpty
-                        ? 'Nenhum produto disponivel'
-                        : 'Nenhum produto encontrado',
-                    style: AppTextStyles.heading2,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            )
-          : Stack(
-              children: [
-                ListView.builder(
-                  controller: _scrollController,
-                  padding: const EdgeInsets.only(right: 24),
-                  itemCount: letters.length,
-                  itemBuilder: (context, sectionIndex) {
-                    final letter = letters[sectionIndex];
-                    final products = grouped[letter]!;
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _LetterHeader(letter: letter),
-                        ...products.map((p) => _ProductPickerTile(
-                              product: p,
-                              category: _categoryMap[p.categoryId],
-                              onTap: () => Navigator.of(context).pop(p),
-                            )),
-                      ],
-                    );
-                  },
+      floatingActionButton: FloatingActionButton(
+        heroTag: null,
+        onPressed: _openCreateProduct,
+        child: const Icon(Icons.add),
+      ),
+      body: productsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (_, _) => const Center(child: Text('Erro ao carregar produtos')),
+        data: (allProducts) {
+          final cats = categoriesAsync.valueOrNull ?? [];
+          final categoryMap = {for (final c in cats) c.id: c};
+          final filtered = _filterProducts(allProducts);
+
+          final groups = groupByCategory<Product>(
+            items: filtered,
+            categoryIdOf: (p) => p.categoryId,
+            categories: cats,
+          );
+          for (final g in groups) {
+            g.items.sort(
+              (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+            );
+          }
+
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
                 ),
-                if (letters.length > 1)
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    bottom: 0,
-                    child: _AlphabetSidebar(
-                      letters: letters,
-                      onLetterSelected: (letter) {
-                        final target = offsets[letter];
-                        if (target == null) return;
-                        _scrollController.animateTo(
-                          target,
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeOut,
-                        );
-                      },
-                    ),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: _onSearchChanged,
+                  decoration: const InputDecoration(
+                    hintText: 'Buscar produto...',
+                    prefixIcon: Icon(Icons.search),
                   ),
-              ],
-            ),
+                ),
+              ),
+              Expanded(
+                child: filtered.isEmpty
+                    ? _buildEmptyState()
+                    : ListView.builder(
+                        itemCount: groups.length,
+                        itemBuilder: (context, i) {
+                          final group = groups[i];
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              CategorySectionHeader(category: group.category),
+                              ...group.items.map(
+                                (p) => _ProductPickerTile(
+                                  product: p,
+                                  category: categoryMap[p.categoryId],
+                                  onTap: () => Navigator.of(context).pop(p),
+                                  onEdit: () => Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          ProductFormPage(product: p),
+                                    ),
+                                  ),
+                                  onDelete: () async {
+                                    final confirmed = await ConfirmDialog.show(
+                                      context,
+                                      title: 'Apagar produto',
+                                      content:
+                                          'Tem certeza que deseja apagar "${p.name}"?',
+                                      confirmLabel: 'Apagar',
+                                      isDestructive: true,
+                                    );
+                                    if (confirmed == true) {
+                                      await ref
+                                          .read(productsProvider.notifier)
+                                          .remove(p.id);
+                                    }
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
-}
 
-class _LetterHeader extends StatelessWidget {
-  const _LetterHeader({required this.letter});
-
-  final String letter;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 32,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      alignment: Alignment.centerLeft,
-      color: AppColors.backgroundSecondary,
-      child: Text(letter, style: AppTextStyles.bodySecondary.copyWith(fontWeight: FontWeight.w600)),
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.search_off,
+            size: 64,
+            color: AppColors.textSecondary,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            _query.isEmpty
+                ? 'Nenhum produto disponivel'
+                : 'Nenhum produto encontrado',
+            style: AppTextStyles.heading2,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 }
@@ -203,18 +203,26 @@ class _ProductPickerTile extends StatelessWidget {
     required this.product,
     required this.category,
     required this.onTap,
+    this.onEdit,
+    this.onDelete,
   });
 
   final Product product;
   final Category? category;
   final VoidCallback onTap;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    final hasDismiss = onEdit != null || onDelete != null;
+
+    final card = SizedBox(
       height: 72,
       child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        margin: hasDismiss
+            ? EdgeInsets.zero
+            : const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
@@ -233,8 +241,12 @@ class _ProductPickerTile extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
-                    category != null ? IconData(category!.icon, fontFamily: 'MaterialIcons') : Icons.category,
-                    color: category != null ? Color(category!.color) : AppColors.textSecondary,
+                    category != null
+                        ? IconData(category!.icon, fontFamily: 'MaterialIcons')
+                        : Icons.category,
+                    color: category != null
+                        ? Color(category!.color)
+                        : AppColors.textSecondary,
                     size: 22,
                   ),
                 ),
@@ -246,10 +258,7 @@ class _ProductPickerTile extends StatelessWidget {
                     children: [
                       Text(product.name, style: AppTextStyles.body),
                       const SizedBox(height: 2),
-                      Text(
-                        '${category?.name ?? ''} · ${product.unit}',
-                        style: AppTextStyles.caption,
-                      ),
+                      Text(product.unit, style: AppTextStyles.caption),
                     ],
                   ),
                 ),
@@ -259,54 +268,36 @@ class _ProductPickerTile extends StatelessWidget {
         ),
       ),
     );
-  }
-}
 
-class _AlphabetSidebar extends StatelessWidget {
-  const _AlphabetSidebar({
-    required this.letters,
-    required this.onLetterSelected,
-  });
+    if (!hasDismiss) return card;
 
-  final List<String> letters;
-  final ValueChanged<String> onLetterSelected;
-
-  String _letterFromPosition(double dy, double totalHeight) {
-    final index = (dy / totalHeight * letters.length).clamp(0, letters.length - 1).toInt();
-    return letters[index];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onVerticalDragUpdate: (details) {
-        final box = context.findRenderObject() as RenderBox;
-        final local = box.globalToLocal(details.globalPosition);
-        onLetterSelected(_letterFromPosition(local.dy, box.size.height));
-      },
-      onTapDown: (details) {
-        final box = context.findRenderObject() as RenderBox;
-        final local = box.globalToLocal(details.globalPosition);
-        onLetterSelected(_letterFromPosition(local.dy, box.size.height));
-      },
-      child: Container(
-        width: 20,
-        alignment: Alignment.center,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: letters
-              .map((l) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 1),
-                    child: Text(
-                      l,
-                      style: AppTextStyles.caption.copyWith(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ))
-              .toList(),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Dismissible(
+          key: ValueKey(product.id),
+          background: Container(
+            alignment: Alignment.centerLeft,
+            padding: const EdgeInsets.only(left: 24),
+            color: AppColors.primaryStrong,
+            child: const Icon(Icons.edit, color: AppColors.onPrimary),
+          ),
+          secondaryBackground: Container(
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.only(right: 24),
+            color: AppColors.error,
+            child: const Icon(Icons.delete, color: AppColors.onPrimary),
+          ),
+          confirmDismiss: (direction) async {
+            if (direction == DismissDirection.startToEnd) {
+              onEdit?.call();
+              return false;
+            }
+            onDelete?.call();
+            return false;
+          },
+          child: card,
         ),
       ),
     );

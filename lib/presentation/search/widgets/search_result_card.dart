@@ -64,7 +64,7 @@ class SearchResultCard extends StatelessWidget {
           _buildChip(
             Icons.kitchen_outlined,
             '${pantryItem!.currentQuantity.toStringAsFixed(0)}/${pantryItem!.idealQuantity.toStringAsFixed(0)}',
-            pantryItem!.isLowStock ? AppColors.error : AppColors.primary,
+            pantryItem!.isLowStock ? AppColors.error : AppColors.primaryStrong,
           ),
         if (lastPurchase != null)
           _buildChip(

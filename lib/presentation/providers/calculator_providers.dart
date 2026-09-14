@@ -43,10 +43,7 @@ class CalculatorNotifier extends Notifier<CalculatorState> {
     }
 
     if (state.shouldResetOnNextInput) {
-      state = state.copyWith(
-        display: digit,
-        shouldResetOnNextInput: false,
-      );
+      state = state.copyWith(display: digit, shouldResetOnNextInput: false);
       return;
     }
 
@@ -56,10 +53,7 @@ class CalculatorNotifier extends Notifier<CalculatorState> {
 
   void inputDecimal() {
     if (state.shouldResetOnNextInput) {
-      state = state.copyWith(
-        display: '0.',
-        shouldResetOnNextInput: false,
-      );
+      state = state.copyWith(display: '0.', shouldResetOnNextInput: false);
       return;
     }
 
@@ -71,7 +65,9 @@ class CalculatorNotifier extends Notifier<CalculatorState> {
     final current = double.tryParse(state.display);
     if (current == null) return;
 
-    if (_firstOperand != null && _pendingOperation != null && !state.shouldResetOnNextInput) {
+    if (_firstOperand != null &&
+        _pendingOperation != null &&
+        !state.shouldResetOnNextInput) {
       final result = _evaluate(_firstOperand!, current, _pendingOperation!);
       if (result == null) {
         state = state.copyWith(
@@ -107,8 +103,7 @@ class CalculatorNotifier extends Notifier<CalculatorState> {
     if (current == null) return;
 
     final result = _evaluate(_firstOperand!, current, _pendingOperation!);
-    final expressionStr =
-        '${state.expression} ${state.display}';
+    final expressionStr = '${state.expression} ${state.display}';
 
     if (result == null) {
       state = state.copyWith(
@@ -198,15 +193,19 @@ class CalculatorNotifier extends Notifier<CalculatorState> {
   }
 
   String _formatNumber(double value) {
-    if (value == value.truncateToDouble() && !value.isInfinite && !value.isNaN) {
+    if (value == value.truncateToDouble() &&
+        !value.isInfinite &&
+        !value.isNaN) {
       return value.toInt().toString();
     }
     final str = value.toStringAsFixed(8);
-    return str.contains('.') ? str.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '') : str;
+    return str.contains('.')
+        ? str.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '')
+        : str;
   }
 }
 
 final calculatorProvider =
     NotifierProvider<CalculatorNotifier, CalculatorState>(
-  CalculatorNotifier.new,
-);
+      CalculatorNotifier.new,
+    );

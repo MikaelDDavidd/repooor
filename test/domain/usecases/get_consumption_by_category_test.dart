@@ -22,8 +22,9 @@ void main() {
   group('GetConsumptionByCategory', () {
     test('should return empty map when there are no items', () async {
       // Arrange
-      when(() => mockRepository.getAllItemsByDateRange(startDate, endDate))
-          .thenAnswer((_) async => []);
+      when(
+        () => mockRepository.getAllItemsByDateRange(startDate, endDate),
+      ).thenAnswer((_) async => []);
       const products = <Product>[];
 
       // Act
@@ -31,8 +32,9 @@ void main() {
 
       // Assert
       expect(result, isEmpty);
-      verify(() => mockRepository.getAllItemsByDateRange(startDate, endDate))
-          .called(1);
+      verify(
+        () => mockRepository.getAllItemsByDateRange(startDate, endDate),
+      ).called(1);
     });
 
     test('should group correctly by category', () async {
@@ -52,11 +54,22 @@ void main() {
         ),
       ];
       const products = [
-        Product(id: 'prod-1', name: 'Arroz', categoryId: 'cat-grains', unit: 'kg'),
-        Product(id: 'prod-2', name: 'Leite', categoryId: 'cat-dairy', unit: 'L'),
+        Product(
+          id: 'prod-1',
+          name: 'Arroz',
+          categoryId: 'cat-grains',
+          unit: 'kg',
+        ),
+        Product(
+          id: 'prod-2',
+          name: 'Leite',
+          categoryId: 'cat-dairy',
+          unit: 'L',
+        ),
       ];
-      when(() => mockRepository.getAllItemsByDateRange(startDate, endDate))
-          .thenAnswer((_) async => items);
+      when(
+        () => mockRepository.getAllItemsByDateRange(startDate, endDate),
+      ).thenAnswer((_) async => items);
 
       // Act
       final result = await usecase.call(startDate, endDate, products);
@@ -90,11 +103,22 @@ void main() {
         ),
       ];
       const products = [
-        Product(id: 'prod-1', name: 'Arroz', categoryId: 'cat-grains', unit: 'kg'),
-        Product(id: 'prod-2', name: 'Feijao', categoryId: 'cat-grains', unit: 'kg'),
+        Product(
+          id: 'prod-1',
+          name: 'Arroz',
+          categoryId: 'cat-grains',
+          unit: 'kg',
+        ),
+        Product(
+          id: 'prod-2',
+          name: 'Feijao',
+          categoryId: 'cat-grains',
+          unit: 'kg',
+        ),
       ];
-      when(() => mockRepository.getAllItemsByDateRange(startDate, endDate))
-          .thenAnswer((_) async => items);
+      when(
+        () => mockRepository.getAllItemsByDateRange(startDate, endDate),
+      ).thenAnswer((_) async => items);
 
       // Act
       final result = await usecase.call(startDate, endDate, products);
@@ -121,10 +145,16 @@ void main() {
         ),
       ];
       const products = [
-        Product(id: 'prod-1', name: 'Arroz', categoryId: 'cat-grains', unit: 'kg'),
+        Product(
+          id: 'prod-1',
+          name: 'Arroz',
+          categoryId: 'cat-grains',
+          unit: 'kg',
+        ),
       ];
-      when(() => mockRepository.getAllItemsByDateRange(startDate, endDate))
-          .thenAnswer((_) async => items);
+      when(
+        () => mockRepository.getAllItemsByDateRange(startDate, endDate),
+      ).thenAnswer((_) async => items);
 
       // Act
       final result = await usecase.call(startDate, endDate, products);

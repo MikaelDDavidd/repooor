@@ -5,8 +5,12 @@ abstract class PurchaseRepository {
   Future<List<Purchase>> getAll();
   Future<Purchase?> getById(String id);
   Future<List<Purchase>> getByDateRange(DateTime start, DateTime end);
-  Future<List<PurchaseItem>> getAllItemsByDateRange(DateTime start, DateTime end);
+  Future<List<PurchaseItem>> getAllItemsByDateRange(
+    DateTime start,
+    DateTime end,
+  );
   Future<void> create(Purchase purchase);
+  Future<void> updateStatus(String id, PurchaseStatus status);
   Future<void> delete(String id);
 }
 

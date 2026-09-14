@@ -51,17 +51,20 @@ void main() {
         expect(result.name, product.name);
       });
 
-      test('should return entity with updated categoryId when categoryId is passed', () {
-        // Arrange
-        const newCategoryId = 'cat-5';
+      test(
+        'should return entity with updated categoryId when categoryId is passed',
+        () {
+          // Arrange
+          const newCategoryId = 'cat-5';
 
-        // Act
-        final result = product.copyWith(categoryId: newCategoryId);
+          // Act
+          final result = product.copyWith(categoryId: newCategoryId);
 
-        // Assert
-        expect(result.categoryId, newCategoryId);
-        expect(result.name, product.name);
-      });
+          // Assert
+          expect(result.categoryId, newCategoryId);
+          expect(result.name, product.name);
+        },
+      );
 
       test('should return entity with updated unit when unit is passed', () {
         // Arrange
@@ -75,27 +78,30 @@ void main() {
         expect(result.name, product.name);
       });
 
-      test('should return entity with all fields updated when all parameters are passed', () {
-        // Arrange
-        const newId = 'prod-2';
-        const newName = 'Leite';
-        const newCategoryId = 'cat-3';
-        const newUnit = 'L';
+      test(
+        'should return entity with all fields updated when all parameters are passed',
+        () {
+          // Arrange
+          const newId = 'prod-2';
+          const newName = 'Leite';
+          const newCategoryId = 'cat-3';
+          const newUnit = 'L';
 
-        // Act
-        final result = product.copyWith(
-          id: newId,
-          name: newName,
-          categoryId: newCategoryId,
-          unit: newUnit,
-        );
+          // Act
+          final result = product.copyWith(
+            id: newId,
+            name: newName,
+            categoryId: newCategoryId,
+            unit: newUnit,
+          );
 
-        // Assert
-        expect(result.id, newId);
-        expect(result.name, newName);
-        expect(result.categoryId, newCategoryId);
-        expect(result.unit, newUnit);
-      });
+          // Assert
+          expect(result.id, newId);
+          expect(result.name, newName);
+          expect(result.categoryId, newCategoryId);
+          expect(result.unit, newUnit);
+        },
+      );
     });
   });
 }

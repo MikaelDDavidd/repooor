@@ -1,11 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
-import '../../domain/entities/product.dart';
-import '../../domain/usecases/get_all_products.dart';
-import '../../domain/usecases/create_product.dart';
-import '../../domain/usecases/update_product.dart';
-import '../../domain/usecases/delete_product.dart';
 import '../../core/di/providers.dart';
+import '../../domain/entities/product.dart';
+import '../../domain/usecases/create_product.dart';
+import '../../domain/usecases/delete_product.dart';
+import '../../domain/usecases/get_all_products.dart';
+import '../../domain/usecases/seed_default_products.dart';
+import '../../domain/usecases/update_product.dart';
+import 'category_providers.dart';
 
 const _uuid = Uuid();
 
@@ -41,9 +43,17 @@ class ProductsNotifier extends AsyncNotifier<List<Product>> {
   CreateProduct get _create => ref.watch(createProductProvider);
   UpdateProduct get _update => ref.watch(updateProductProvider);
   DeleteProduct get _delete => ref.watch(deleteProductProvider);
+  SeedDefaultProducts get _seed => ref.watch(seedDefaultProductsProvider);
 
   @override
-  Future<List<Product>> build() => _getAll();
+  Future<List<Product>> build() async {
+    final products = await _getAll();
+    if (products.isNotEmpty) return products;
+    final categories = await ref.watch(categoriesProvider.future);
+    if (categories.isEmpty) return products;
+    await _seed(categories);
+    return _getAll();
+  }
 
   Future<void> add(String name, String categoryId, String unit) async {
     final product = Product(

@@ -2,14 +2,17 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../core/dev/sample_data_seeder.dart';
 import '../../core/di/providers.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../providers/auth_providers.dart';
 import '../providers/category_providers.dart';
 import '../providers/pantry_providers.dart';
 import '../providers/product_providers.dart';
@@ -27,9 +30,19 @@ class SettingsPage extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          _buildSectionLabel('Conta'),
+          const SizedBox(height: 8),
+          _buildAccountSection(context, ref),
+          const SizedBox(height: 24),
           _buildSectionLabel('Dados'),
           const SizedBox(height: 8),
           _buildDataSection(context, ref),
+          if (kDebugMode) ...[
+            const SizedBox(height: 24),
+            _buildSectionLabel('Desenvolvimento'),
+            const SizedBox(height: 8),
+            _buildDevSection(context, ref),
+          ],
           const SizedBox(height: 24),
           _buildSectionLabel('Sobre'),
           const SizedBox(height: 8),
@@ -37,6 +50,97 @@ class SettingsPage extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Widget _buildDevSection(BuildContext context, WidgetRef ref) {
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: _buildTile(
+        icon: Icons.science_outlined,
+        title: 'Popular dados de exemplo',
+        onTap: () => _seedSampleData(context, ref),
+      ),
+    );
+  }
+
+  Future<void> _seedSampleData(BuildContext context, WidgetRef ref) async {
+    final confirmed = await ConfirmDialog.show(
+      context,
+      title: 'Popular dados de exemplo',
+      content:
+          'Vai adicionar 12 produtos, 6 itens na despensa e 4 compras (incluindo preços). Útil para testar a UI. Continuar?',
+      confirmLabel: 'Popular',
+    );
+    if (confirmed != true) return;
+    try {
+      final result = await SampleDataSeeder.seed(ref);
+      _invalidateAllProviders(ref);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${result.productCount} produtos e ${result.purchaseCount} compras adicionados',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro ao popular dados: $e')));
+      }
+    }
+  }
+
+  Widget _buildAccountSection(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(authStateProvider).valueOrNull;
+    final name = user?.name ?? '';
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        children: [
+          ListTile(
+            leading: const Icon(
+              Icons.person_outline,
+              color: AppColors.textPrimary,
+            ),
+            title: Text(
+              name.isEmpty ? 'Conta' : name,
+              style: AppTextStyles.body,
+            ),
+            subtitle: Text(user?.email ?? '', style: AppTextStyles.caption),
+          ),
+          const Divider(height: 1),
+          _buildTile(
+            icon: Icons.logout_outlined,
+            title: 'Sair da conta',
+            onTap: () => _signOut(context, ref),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _signOut(BuildContext context, WidgetRef ref) async {
+    final confirmed = await ConfirmDialog.show(
+      context,
+      title: 'Sair da conta',
+      content:
+          'Seus dados continuam salvos neste aparelho. Você vai precisar entrar de novo para sincronizar.',
+      confirmLabel: 'Sair',
+    );
+    if (confirmed != true) return;
+
+    final failure = await ref.read(authControllerProvider.notifier).signOut();
+    if (!context.mounted) return;
+    if (failure == null) {
+      context.go('/login');
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(failure.message)));
+    }
   }
 
   Widget _buildSectionLabel(String label) {
@@ -112,10 +216,7 @@ class SettingsPage extends ConsumerWidget {
   }) {
     return ListTile(
       leading: Icon(icon, color: iconColor ?? AppColors.textPrimary),
-      title: Text(
-        title,
-        style: AppTextStyles.body.copyWith(color: titleColor),
-      ),
+      title: Text(title, style: AppTextStyles.body.copyWith(color: titleColor)),
       trailing: Icon(
         Icons.chevron_right,
         color: iconColor ?? AppColors.textSecondary,
@@ -139,9 +240,9 @@ class SettingsPage extends ConsumerWidget {
       }
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erro ao exportar dados')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Erro ao exportar dados')));
       }
     }
   }
@@ -177,9 +278,9 @@ class SettingsPage extends ConsumerWidget {
       }
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erro ao importar dados')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Erro ao importar dados')));
       }
     }
   }
@@ -188,7 +289,8 @@ class SettingsPage extends ConsumerWidget {
     final confirmed = await ConfirmDialog.show(
       context,
       title: 'Limpar todos os dados',
-      content: 'Essa acao ira apagar todos os produtos, itens da despensa e compras. Nao pode ser desfeita.',
+      content:
+          'Essa acao ira apagar todos os produtos, itens da despensa e compras. Nao pode ser desfeita.',
       confirmLabel: 'Limpar tudo',
       isDestructive: true,
     );
@@ -205,9 +307,9 @@ class SettingsPage extends ConsumerWidget {
       }
     } catch (_) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Erro ao limpar dados')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Erro ao limpar dados')));
       }
     }
   }

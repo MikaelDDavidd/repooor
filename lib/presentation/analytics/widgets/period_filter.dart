@@ -26,7 +26,7 @@ class PeriodFilter extends ConsumerWidget {
           selected: isSelected,
           onSelected: (_) =>
               ref.read(analyticsPeriodProvider.notifier).state = period,
-          selectedColor: AppColors.primary,
+          selectedColor: AppColors.primaryStrong,
           labelStyle: TextStyle(
             color: isSelected ? AppColors.onPrimary : AppColors.textPrimary,
             fontWeight: FontWeight.w600,

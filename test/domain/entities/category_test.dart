@@ -75,27 +75,30 @@ void main() {
         expect(result.name, category.name);
       });
 
-      test('should return entity with all fields updated when all parameters are passed', () {
-        // Arrange
-        const newId = 'cat-2';
-        const newName = 'Laticinios';
-        const newIcon = 0xe555;
-        const newColor = 0xFF2196F3;
+      test(
+        'should return entity with all fields updated when all parameters are passed',
+        () {
+          // Arrange
+          const newId = 'cat-2';
+          const newName = 'Laticinios';
+          const newIcon = 0xe555;
+          const newColor = 0xFF2196F3;
 
-        // Act
-        final result = category.copyWith(
-          id: newId,
-          name: newName,
-          icon: newIcon,
-          color: newColor,
-        );
+          // Act
+          final result = category.copyWith(
+            id: newId,
+            name: newName,
+            icon: newIcon,
+            color: newColor,
+          );
 
-        // Assert
-        expect(result.id, newId);
-        expect(result.name, newName);
-        expect(result.icon, newIcon);
-        expect(result.color, newColor);
-      });
+          // Assert
+          expect(result.id, newId);
+          expect(result.name, newName);
+          expect(result.icon, newIcon);
+          expect(result.color, newColor);
+        },
+      );
     });
   });
 }

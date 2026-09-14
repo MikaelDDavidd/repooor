@@ -68,12 +68,6 @@ class HomePage extends ConsumerWidget {
         onPressed: () => _createPurchase(context, ref),
         icon: const Icon(Icons.add_shopping_cart, color: AppColors.onPrimary),
         label: Text('Nova compra', style: AppTextStyles.button),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
       ),
     );
   }
@@ -83,10 +77,8 @@ class HomePage extends ConsumerWidget {
         .read(purchasesProvider.notifier)
         .createNew(PurchaseType.main);
     if (context.mounted) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => PurchaseDetailPage(purchaseId: id),
-        ),
+      Navigator.of(context, rootNavigator: true).push(
+        MaterialPageRoute(builder: (_) => PurchaseDetailPage(purchaseId: id)),
       );
     }
   }

@@ -40,9 +40,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     final results = ref.watch(searchResultsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: _buildSearchField(),
-      ),
+      appBar: AppBar(title: _buildSearchField()),
       body: _buildBody(query, results),
     );
   }

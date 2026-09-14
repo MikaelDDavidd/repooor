@@ -39,62 +39,116 @@ void main() {
         expect(result.quantity, item.quantity);
       });
 
-      test('should return entity with updated purchaseId when purchaseId is passed', () {
-        // Arrange
-        const newPurchaseId = 'purchase-42';
+      test(
+        'should return entity with updated purchaseId when purchaseId is passed',
+        () {
+          // Arrange
+          const newPurchaseId = 'purchase-42';
 
+          // Act
+          final result = item.copyWith(purchaseId: newPurchaseId);
+
+          // Assert
+          expect(result.purchaseId, newPurchaseId);
+          expect(result.id, item.id);
+        },
+      );
+
+      test(
+        'should return entity with updated productId when productId is passed',
+        () {
+          // Arrange
+          const newProductId = 'prod-99';
+
+          // Act
+          final result = item.copyWith(productId: newProductId);
+
+          // Assert
+          expect(result.productId, newProductId);
+          expect(result.id, item.id);
+        },
+      );
+
+      test(
+        'should return entity with updated quantity when quantity is passed',
+        () {
+          // Arrange
+          const newQuantity = 10.0;
+
+          // Act
+          final result = item.copyWith(quantity: newQuantity);
+
+          // Assert
+          expect(result.quantity, newQuantity);
+          expect(result.id, item.id);
+        },
+      );
+
+      test(
+        'should return entity with all fields updated when all parameters are passed',
+        () {
+          // Arrange
+          const newId = 'pi-2';
+          const newPurchaseId = 'purchase-2';
+          const newProductId = 'prod-2';
+          const newQuantity = 7.0;
+
+          // Act
+          final result = item.copyWith(
+            id: newId,
+            purchaseId: newPurchaseId,
+            productId: newProductId,
+            quantity: newQuantity,
+          );
+
+          // Assert
+          expect(result.id, newId);
+          expect(result.purchaseId, newPurchaseId);
+          expect(result.productId, newProductId);
+          expect(result.quantity, newQuantity);
+        },
+      );
+
+      test('should set unitPrice when provided', () {
         // Act
-        final result = item.copyWith(purchaseId: newPurchaseId);
+        final result = item.copyWith(unitPrice: 9.5);
 
         // Assert
-        expect(result.purchaseId, newPurchaseId);
-        expect(result.id, item.id);
+        expect(result.unitPrice, 9.5);
       });
 
-      test('should return entity with updated productId when productId is passed', () {
+      test('should clear unitPrice when clearUnitPrice is true', () {
         // Arrange
-        const newProductId = 'prod-99';
-
-        // Act
-        final result = item.copyWith(productId: newProductId);
-
-        // Assert
-        expect(result.productId, newProductId);
-        expect(result.id, item.id);
-      });
-
-      test('should return entity with updated quantity when quantity is passed', () {
-        // Arrange
-        const newQuantity = 10.0;
-
-        // Act
-        final result = item.copyWith(quantity: newQuantity);
-
-        // Assert
-        expect(result.quantity, newQuantity);
-        expect(result.id, item.id);
-      });
-
-      test('should return entity with all fields updated when all parameters are passed', () {
-        // Arrange
-        const newId = 'pi-2';
-        const newPurchaseId = 'purchase-2';
-        const newProductId = 'prod-2';
-        const newQuantity = 7.0;
-
-        // Act
-        final result = item.copyWith(
-          id: newId,
-          purchaseId: newPurchaseId,
-          productId: newProductId,
-          quantity: newQuantity,
+        const priced = PurchaseItem(
+          id: 'pi-1',
+          purchaseId: 'purchase-1',
+          productId: 'prod-1',
+          quantity: 2,
+          unitPrice: 4.5,
         );
 
+        // Act
+        final result = priced.copyWith(clearUnitPrice: true);
+
         // Assert
-        expect(result.id, newId);
-        expect(result.purchaseId, newPurchaseId);
-        expect(result.productId, newProductId);
-        expect(result.quantity, newQuantity);
+        expect(result.unitPrice, isNull);
+      });
+    });
+
+    group('totalPrice', () {
+      test('should return null when unitPrice is null', () {
+        expect(item.totalPrice, isNull);
+      });
+
+      test('should return unitPrice multiplied by quantity', () {
+        const priced = PurchaseItem(
+          id: 'pi-1',
+          purchaseId: 'purchase-1',
+          productId: 'prod-1',
+          quantity: 3,
+          unitPrice: 2.5,
+        );
+        expect(priced.totalPrice, 7.5);
       });
     });
   });

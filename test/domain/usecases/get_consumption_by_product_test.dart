@@ -22,8 +22,9 @@ void main() {
   group('GetConsumptionByProduct', () {
     test('should return empty list when product has no purchases', () async {
       // Arrange
-      when(() => mockRepository.getByDateRange(startDate, endDate))
-          .thenAnswer((_) async => []);
+      when(
+        () => mockRepository.getByDateRange(startDate, endDate),
+      ).thenAnswer((_) async => []);
 
       // Act
       final result = await usecase.call('prod-1', startDate, endDate);
@@ -41,8 +42,18 @@ void main() {
           date: DateTime(2026, 1, 10),
           type: PurchaseType.main,
           items: const [
-            PurchaseItem(id: 'pi-1', purchaseId: 'p-1', productId: 'prod-1', quantity: 3.0),
-            PurchaseItem(id: 'pi-2', purchaseId: 'p-1', productId: 'prod-2', quantity: 5.0),
+            PurchaseItem(
+              id: 'pi-1',
+              purchaseId: 'p-1',
+              productId: 'prod-1',
+              quantity: 3.0,
+            ),
+            PurchaseItem(
+              id: 'pi-2',
+              purchaseId: 'p-1',
+              productId: 'prod-2',
+              quantity: 5.0,
+            ),
           ],
         ),
         Purchase(
@@ -50,13 +61,24 @@ void main() {
           date: DateTime(2026, 2, 15),
           type: PurchaseType.midMonth,
           items: const [
-            PurchaseItem(id: 'pi-3', purchaseId: 'p-2', productId: 'prod-1', quantity: 2.0),
-            PurchaseItem(id: 'pi-4', purchaseId: 'p-2', productId: 'prod-3', quantity: 7.0),
+            PurchaseItem(
+              id: 'pi-3',
+              purchaseId: 'p-2',
+              productId: 'prod-1',
+              quantity: 2.0,
+            ),
+            PurchaseItem(
+              id: 'pi-4',
+              purchaseId: 'p-2',
+              productId: 'prod-3',
+              quantity: 7.0,
+            ),
           ],
         ),
       ];
-      when(() => mockRepository.getByDateRange(startDate, endDate))
-          .thenAnswer((_) async => purchases);
+      when(
+        () => mockRepository.getByDateRange(startDate, endDate),
+      ).thenAnswer((_) async => purchases);
 
       // Act
       final result = await usecase.call('prod-1', startDate, endDate);
@@ -75,7 +97,12 @@ void main() {
           date: DateTime(2026, 3, 20),
           type: PurchaseType.main,
           items: const [
-            PurchaseItem(id: 'pi-2', purchaseId: 'p-2', productId: 'prod-1', quantity: 4.0),
+            PurchaseItem(
+              id: 'pi-2',
+              purchaseId: 'p-2',
+              productId: 'prod-1',
+              quantity: 4.0,
+            ),
           ],
         ),
         Purchase(
@@ -83,7 +110,12 @@ void main() {
           date: DateTime(2026, 1, 5),
           type: PurchaseType.main,
           items: const [
-            PurchaseItem(id: 'pi-1', purchaseId: 'p-1', productId: 'prod-1', quantity: 2.0),
+            PurchaseItem(
+              id: 'pi-1',
+              purchaseId: 'p-1',
+              productId: 'prod-1',
+              quantity: 2.0,
+            ),
           ],
         ),
         Purchase(
@@ -91,12 +123,18 @@ void main() {
           date: DateTime(2026, 2, 10),
           type: PurchaseType.midMonth,
           items: const [
-            PurchaseItem(id: 'pi-3', purchaseId: 'p-3', productId: 'prod-1', quantity: 6.0),
+            PurchaseItem(
+              id: 'pi-3',
+              purchaseId: 'p-3',
+              productId: 'prod-1',
+              quantity: 6.0,
+            ),
           ],
         ),
       ];
-      when(() => mockRepository.getByDateRange(startDate, endDate))
-          .thenAnswer((_) async => purchases);
+      when(
+        () => mockRepository.getByDateRange(startDate, endDate),
+      ).thenAnswer((_) async => purchases);
 
       // Act
       final result = await usecase.call('prod-1', startDate, endDate);
@@ -120,12 +158,18 @@ void main() {
           date: purchaseDate,
           type: PurchaseType.main,
           items: const [
-            PurchaseItem(id: 'pi-1', purchaseId: 'p-1', productId: 'prod-1', quantity: 8.5),
+            PurchaseItem(
+              id: 'pi-1',
+              purchaseId: 'p-1',
+              productId: 'prod-1',
+              quantity: 8.5,
+            ),
           ],
         ),
       ];
-      when(() => mockRepository.getByDateRange(startDate, endDate))
-          .thenAnswer((_) async => purchases);
+      when(
+        () => mockRepository.getByDateRange(startDate, endDate),
+      ).thenAnswer((_) async => purchases);
 
       // Act
       final result = await usecase.call('prod-1', startDate, endDate);
@@ -137,27 +181,41 @@ void main() {
       expect(point.quantity, 8.5);
     });
 
-    test('should return empty list when product exists but not in any purchase', () async {
-      // Arrange
-      final purchases = [
-        Purchase(
-          id: 'p-1',
-          date: DateTime(2026, 1, 10),
-          type: PurchaseType.main,
-          items: const [
-            PurchaseItem(id: 'pi-1', purchaseId: 'p-1', productId: 'prod-2', quantity: 3.0),
-            PurchaseItem(id: 'pi-2', purchaseId: 'p-1', productId: 'prod-3', quantity: 5.0),
-          ],
-        ),
-      ];
-      when(() => mockRepository.getByDateRange(startDate, endDate))
-          .thenAnswer((_) async => purchases);
+    test(
+      'should return empty list when product exists but not in any purchase',
+      () async {
+        // Arrange
+        final purchases = [
+          Purchase(
+            id: 'p-1',
+            date: DateTime(2026, 1, 10),
+            type: PurchaseType.main,
+            items: const [
+              PurchaseItem(
+                id: 'pi-1',
+                purchaseId: 'p-1',
+                productId: 'prod-2',
+                quantity: 3.0,
+              ),
+              PurchaseItem(
+                id: 'pi-2',
+                purchaseId: 'p-1',
+                productId: 'prod-3',
+                quantity: 5.0,
+              ),
+            ],
+          ),
+        ];
+        when(
+          () => mockRepository.getByDateRange(startDate, endDate),
+        ).thenAnswer((_) async => purchases);
 
-      // Act
-      final result = await usecase.call('prod-1', startDate, endDate);
+        // Act
+        final result = await usecase.call('prod-1', startDate, endDate);
 
-      // Assert
-      expect(result, isEmpty);
-    });
+        // Assert
+        expect(result, isEmpty);
+      },
+    );
   });
 }

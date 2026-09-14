@@ -24,10 +24,8 @@ class PurchaseFrequencyLineChart extends ConsumerWidget {
             Text('Frequencia de compras', style: AppTextStyles.heading2),
             const SizedBox(height: 16),
             frequency.when(
-              loading: () => const SizedBox(
-                height: 200,
-                child: AppLoadingState(),
-              ),
+              loading: () =>
+                  const SizedBox(height: 200, child: AppLoadingState()),
               error: (e, _) => AppErrorState(
                 message: 'Erro ao carregar dados',
                 onRetry: () => ref.invalidate(purchaseFrequencyProvider),
@@ -55,15 +53,10 @@ class PurchaseFrequencyLineChart extends ConsumerWidget {
   Widget _buildChart(Map<String, int> data) {
     final sortedKeys = data.keys.toList()..sort();
     final spots = sortedKeys.asMap().entries.map((entry) {
-      return FlSpot(
-        entry.key.toDouble(),
-        data[entry.value]!.toDouble(),
-      );
+      return FlSpot(entry.key.toDouble(), data[entry.value]!.toDouble());
     }).toList();
 
-    final maxY = data.values
-        .fold(0, (max, v) => v > max ? v : max)
-        .toDouble();
+    final maxY = data.values.fold(0, (max, v) => v > max ? v : max).toDouble();
 
     return SizedBox(
       height: 200,
@@ -75,17 +68,17 @@ class PurchaseFrequencyLineChart extends ConsumerWidget {
             show: true,
             drawVerticalLine: false,
             horizontalInterval: 1,
-            getDrawingHorizontalLine: (_) => FlLine(
-              color: AppColors.border,
-              strokeWidth: 0.5,
-            ),
+            getDrawingHorizontalLine: (_) =>
+                FlLine(color: AppColors.border, strokeWidth: 0.5),
           ),
           borderData: FlBorderData(show: false),
           titlesData: FlTitlesData(
-            topTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
@@ -123,14 +116,14 @@ class PurchaseFrequencyLineChart extends ConsumerWidget {
             LineChartBarData(
               spots: spots,
               isCurved: true,
-              color: AppColors.primary,
+              color: AppColors.primaryStrong,
               barWidth: 3,
               isStrokeCapRound: true,
               dotData: FlDotData(
                 show: true,
                 getDotPainter: (_, _, _, _) => FlDotCirclePainter(
                   radius: 4,
-                  color: AppColors.primary,
+                  color: AppColors.primaryStrong,
                   strokeWidth: 2,
                   strokeColor: AppColors.onPrimary,
                 ),

@@ -8,15 +8,15 @@ void main() {
   runApp(const ProviderScope(child: RepooorApp()));
 }
 
-class RepooorApp extends StatelessWidget {
+class RepooorApp extends ConsumerWidget {
   const RepooorApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return MaterialApp.router(
       title: 'Repooor',
       theme: AppTheme.light,
-      routerConfig: appRouter,
+      routerConfig: ref.watch(routerProvider),
       debugShowCheckedModeBanner: false,
     );
   }

@@ -15,14 +15,14 @@ class ProductHistoryLineChart extends StatelessWidget {
       return const SizedBox(
         height: 200,
         child: Center(
-          child: Text('Sem historico de compras', style: AppTextStyles.bodySecondary),
+          child: Text(
+            'Sem historico de compras',
+            style: AppTextStyles.bodySecondary,
+          ),
         ),
       );
     }
-    return SizedBox(
-      height: 200,
-      child: LineChart(_buildChartData()),
-    );
+    return SizedBox(height: 200, child: LineChart(_buildChartData()));
   }
 
   LineChartData _buildChartData() {
@@ -30,7 +30,10 @@ class ProductHistoryLineChart extends StatelessWidget {
       return FlSpot(entry.key.toDouble(), entry.value.quantity);
     }).toList();
 
-    final maxY = points.fold(0.0, (max, p) => p.quantity > max ? p.quantity : max);
+    final maxY = points.fold(
+      0.0,
+      (max, p) => p.quantity > max ? p.quantity : max,
+    );
 
     return LineChartData(
       minY: 0,
@@ -38,23 +41,21 @@ class ProductHistoryLineChart extends StatelessWidget {
       gridData: FlGridData(
         show: true,
         drawVerticalLine: false,
-        getDrawingHorizontalLine: (_) => FlLine(
-          color: AppColors.border,
-          strokeWidth: 0.5,
-        ),
+        getDrawingHorizontalLine: (_) =>
+            FlLine(color: AppColors.border, strokeWidth: 0.5),
       ),
       borderData: FlBorderData(show: false),
       titlesData: FlTitlesData(
         topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+        rightTitles: const AxisTitles(
+          sideTitles: SideTitles(showTitles: false),
+        ),
         leftTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 32,
-            getTitlesWidget: (value, _) => Text(
-              value.toInt().toString(),
-              style: AppTextStyles.caption,
-            ),
+            getTitlesWidget: (value, _) =>
+                Text(value.toInt().toString(), style: AppTextStyles.caption),
           ),
         ),
         bottomTitles: AxisTitles(
@@ -82,14 +83,14 @@ class ProductHistoryLineChart extends StatelessWidget {
         LineChartBarData(
           spots: spots,
           isCurved: true,
-          color: AppColors.primary,
+          color: AppColors.primaryStrong,
           barWidth: 3,
           isStrokeCapRound: true,
           dotData: FlDotData(
             show: true,
             getDotPainter: (_, _, _, _) => FlDotCirclePainter(
               radius: 4,
-              color: AppColors.primary,
+              color: AppColors.primaryStrong,
               strokeWidth: 2,
               strokeColor: AppColors.onPrimary,
             ),

@@ -14,11 +14,20 @@ import 'pantry_providers.dart';
 
 const _uuid = Uuid();
 
-final purchasesProvider = AsyncNotifierProvider<PurchasesNotifier, List<Purchase>>(
-  PurchasesNotifier.new,
-);
+final purchasesProvider =
+    AsyncNotifierProvider<PurchasesNotifier, List<Purchase>>(
+      PurchasesNotifier.new,
+    );
 
 final activePurchaseProvider = StateProvider<String?>((_) => null);
+
+final purchaseByIdProvider = FutureProvider.family<Purchase?, String>((
+  ref,
+  id,
+) {
+  ref.watch(purchasesProvider);
+  return ref.watch(getPurchaseByIdProvider)(id);
+});
 
 final activePurchaseDetailProvider = FutureProvider<Purchase?>((ref) async {
   final id = ref.watch(activePurchaseProvider);
@@ -38,11 +47,7 @@ class PurchasesNotifier extends AsyncNotifier<List<Purchase>> {
 
   Future<String> createNew(PurchaseType type, {DateTime? date}) async {
     final id = _uuid.v4();
-    final purchase = Purchase(
-      id: id,
-      date: date ?? DateTime.now(),
-      type: type,
-    );
+    final purchase = Purchase(id: id, date: date ?? DateTime.now(), type: type);
     await _create(purchase);
     ref.invalidateSelf();
     return id;
@@ -60,11 +65,15 @@ class PurchasesNotifier extends AsyncNotifier<List<Purchase>> {
   }
 }
 
-final purchaseItemsProvider = AsyncNotifierProvider.family<PurchaseItemsNotifier, List<PurchaseItem>, String>(
-  PurchaseItemsNotifier.new,
-);
+final purchaseItemsProvider =
+    AsyncNotifierProvider.family<
+      PurchaseItemsNotifier,
+      List<PurchaseItem>,
+      String
+    >(PurchaseItemsNotifier.new);
 
-class PurchaseItemsNotifier extends FamilyAsyncNotifier<List<PurchaseItem>, String> {
+class PurchaseItemsNotifier
+    extends FamilyAsyncNotifier<List<PurchaseItem>, String> {
   AddPurchaseItem get _addItem => ref.read(addPurchaseItemProvider);
   UpdatePurchaseItem get _updateItem => ref.read(updatePurchaseItemProvider);
   RemovePurchaseItem get _removeItem => ref.read(removePurchaseItemProvider);
@@ -76,24 +85,71 @@ class PurchaseItemsNotifier extends FamilyAsyncNotifier<List<PurchaseItem>, Stri
     return purchase?.items ?? [];
   }
 
-  Future<void> addItem(String productId, double quantity) async {
+  Future<void> addItem(
+    String productId,
+    double quantity, {
+    double? unitPrice,
+  }) async {
     final item = PurchaseItem(
       id: _uuid.v4(),
       purchaseId: arg,
       productId: productId,
       quantity: quantity,
+      unitPrice: unitPrice,
     );
     await _addItem(item);
     ref.invalidateSelf();
   }
 
-  Future<void> updateItem(String itemId, double quantity) async {
+  Future<void> updateItem(
+    String itemId,
+    double quantity, {
+    double? unitPrice,
+    bool clearUnitPrice = false,
+  }) async {
+    final existing = _findItem(itemId);
+    if (existing == null) return;
+    await _updateItem(
+      existing.copyWith(
+        quantity: quantity,
+        unitPrice: unitPrice,
+        clearUnitPrice: clearUnitPrice,
+      ),
+    );
+    ref.invalidateSelf();
+  }
+
+  Future<void> pickItem(
+    String itemId, {
+    required double quantity,
+    double? unitPrice,
+  }) async {
+    final existing = _findItem(itemId);
+    if (existing == null) return;
+    await _updateItem(
+      existing.copyWith(
+        quantity: quantity,
+        unitPrice: unitPrice,
+        clearUnitPrice: unitPrice == null,
+        picked: true,
+      ),
+    );
+    ref.invalidateSelf();
+    ref.invalidate(purchasesProvider);
+  }
+
+  Future<void> unpickItem(String itemId) async {
+    final existing = _findItem(itemId);
+    if (existing == null) return;
+    await _updateItem(existing.copyWith(picked: false));
+    ref.invalidateSelf();
+    ref.invalidate(purchasesProvider);
+  }
+
+  PurchaseItem? _findItem(String itemId) {
     final items = state.valueOrNull ?? [];
     final matches = items.where((i) => i.id == itemId);
-    final existing = matches.isNotEmpty ? matches.first : null;
-    if (existing == null) return;
-    await _updateItem(existing.copyWith(quantity: quantity));
-    ref.invalidateSelf();
+    return matches.isNotEmpty ? matches.first : null;
   }
 
   Future<void> removeItem(String itemId) async {

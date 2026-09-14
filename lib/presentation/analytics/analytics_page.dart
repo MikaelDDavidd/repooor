@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'widgets/period_filter.dart';
 import 'widgets/category_pie_chart.dart';
-import 'widgets/top_products_bar_chart.dart';
+import 'widgets/monthly_spending_card.dart';
+import 'widgets/period_filter.dart';
 import 'widgets/purchase_frequency_line_chart.dart';
+import 'widgets/top_products_bar_chart.dart';
+import 'widgets/top_spending_category_card.dart';
 
 class AnalyticsPage extends StatelessWidget {
   const AnalyticsPage({super.key});
@@ -15,6 +17,10 @@ class AnalyticsPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          const MonthlySpendingCard(),
+          const SizedBox(height: 12),
+          const TopSpendingCategoryCard(),
+          const SizedBox(height: 16),
           const PeriodFilter(),
           const SizedBox(height: 16),
           CategoryPieChart(

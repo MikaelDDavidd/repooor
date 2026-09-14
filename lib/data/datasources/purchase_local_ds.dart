@@ -17,7 +17,11 @@ class PurchaseLocalDs {
 
   Future<PurchaseModel?> getById(String id) async {
     final db = await _db;
-    final maps = await db.query(_tablePurchases, where: 'id = ?', whereArgs: [id]);
+    final maps = await db.query(
+      _tablePurchases,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
     if (maps.isEmpty) return null;
     return PurchaseModel.fromMap(maps.first);
   }
@@ -37,15 +41,36 @@ class PurchaseLocalDs {
 
   Future<void> insert(PurchaseModel model) async {
     final db = await _db;
-    await db.insert(_tablePurchases, model.toMap());
+    await db.insert(_tablePurchases, {
+      ...model.toMap(),
+      'updated_at': DateTime.now().millisecondsSinceEpoch,
+    });
   }
 
+  Future<void> updateStatus(String id, String status) async {
+    final db = await _db;
+    await db.update(
+      _tablePurchases,
+      {'status': status, 'updated_at': DateTime.now().millisecondsSinceEpoch},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// Apaga os itens explicitamente: o sqflite não liga `PRAGMA foreign_keys`,
+  /// então o ON DELETE CASCADE do schema nunca dispara e os itens ficariam
+  /// órfãos no banco.
   Future<void> delete(String id) async {
     final db = await _db;
-    await db.delete(_tablePurchases, where: 'id = ?', whereArgs: [id]);
+    final batch = db.batch();
+    batch.delete(_tableItems, where: 'purchase_id = ?', whereArgs: [id]);
+    batch.delete(_tablePurchases, where: 'id = ?', whereArgs: [id]);
+    await batch.commit(noResult: true);
   }
 
-  Future<List<PurchaseItemModel>> getItemsByPurchaseId(String purchaseId) async {
+  Future<List<PurchaseItemModel>> getItemsByPurchaseId(
+    String purchaseId,
+  ) async {
     final db = await _db;
     final maps = await db.query(
       _tableItems,
@@ -57,7 +82,10 @@ class PurchaseLocalDs {
 
   Future<void> insertItem(PurchaseItemModel model) async {
     final db = await _db;
-    await db.insert(_tableItems, model.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert(_tableItems, {
+      ...model.toMap(),
+      'updated_at': DateTime.now().millisecondsSinceEpoch,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<void> deleteItem(String itemId) async {
@@ -67,7 +95,12 @@ class PurchaseLocalDs {
 
   Future<void> updateItem(PurchaseItemModel model) async {
     final db = await _db;
-    await db.update(_tableItems, model.toMap(), where: 'id = ?', whereArgs: [model.id]);
+    await db.update(
+      _tableItems,
+      {...model.toMap(), 'updated_at': DateTime.now().millisecondsSinceEpoch},
+      where: 'id = ?',
+      whereArgs: [model.id],
+    );
   }
 
   Future<List<PurchaseModel>> getByDateRange(String start, String end) async {
@@ -81,7 +114,10 @@ class PurchaseLocalDs {
     return maps.map(PurchaseModel.fromMap).toList();
   }
 
-  Future<List<PurchaseItemModel>> getAllItemsByDateRange(String start, String end) async {
+  Future<List<PurchaseItemModel>> getAllItemsByDateRange(
+    String start,
+    String end,
+  ) async {
     final db = await _db;
     final maps = await db.rawQuery(
       'SELECT pi.* FROM $_tableItems pi '

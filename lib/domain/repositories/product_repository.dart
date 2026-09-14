@@ -1,3 +1,4 @@
+import '../entities/category.dart';
 import '../entities/product.dart';
 
 abstract class ProductRepository {
@@ -8,4 +9,5 @@ abstract class ProductRepository {
   Future<void> create(Product product);
   Future<void> update(Product product);
   Future<void> delete(String id);
+  Future<void> seedDefaults(List<Category> categories);
 }

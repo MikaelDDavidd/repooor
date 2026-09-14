@@ -26,14 +26,20 @@ class PantryLocalDs {
 
   Future<void> insert(PantryItemModel model) async {
     final db = await _db;
-    await db.insert(_table, model.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert(_table, {
+      ...model.toMap(),
+      'updated_at': DateTime.now().millisecondsSinceEpoch,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<void> updateQuantity(String id, double currentQuantity) async {
     final db = await _db;
     await db.update(
       _table,
-      {'current_quantity': currentQuantity},
+      {
+        'current_quantity': currentQuantity,
+        'updated_at': DateTime.now().millisecondsSinceEpoch,
+      },
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -43,7 +49,10 @@ class PantryLocalDs {
     final db = await _db;
     await db.update(
       _table,
-      {'ideal_quantity': idealQuantity},
+      {
+        'ideal_quantity': idealQuantity,
+        'updated_at': DateTime.now().millisecondsSinceEpoch,
+      },
       where: 'id = ?',
       whereArgs: [id],
     );

@@ -21,27 +21,45 @@ void main() {
   group('GetTopProducts', () {
     test('should return empty list when there are no items', () async {
       // Arrange
-      when(() => mockRepository.getAllItemsByDateRange(startDate, endDate))
-          .thenAnswer((_) async => []);
+      when(
+        () => mockRepository.getAllItemsByDateRange(startDate, endDate),
+      ).thenAnswer((_) async => []);
 
       // Act
       final result = await usecase.call(startDate, endDate);
 
       // Assert
       expect(result, isEmpty);
-      verify(() => mockRepository.getAllItemsByDateRange(startDate, endDate))
-          .called(1);
+      verify(
+        () => mockRepository.getAllItemsByDateRange(startDate, endDate),
+      ).called(1);
     });
 
     test('should sort by totalQuantity descending', () async {
       // Arrange
       const items = [
-        PurchaseItem(id: 'pi-1', purchaseId: 'p-1', productId: 'prod-a', quantity: 2.0),
-        PurchaseItem(id: 'pi-2', purchaseId: 'p-1', productId: 'prod-b', quantity: 10.0),
-        PurchaseItem(id: 'pi-3', purchaseId: 'p-1', productId: 'prod-c', quantity: 5.0),
+        PurchaseItem(
+          id: 'pi-1',
+          purchaseId: 'p-1',
+          productId: 'prod-a',
+          quantity: 2.0,
+        ),
+        PurchaseItem(
+          id: 'pi-2',
+          purchaseId: 'p-1',
+          productId: 'prod-b',
+          quantity: 10.0,
+        ),
+        PurchaseItem(
+          id: 'pi-3',
+          purchaseId: 'p-1',
+          productId: 'prod-c',
+          quantity: 5.0,
+        ),
       ];
-      when(() => mockRepository.getAllItemsByDateRange(startDate, endDate))
-          .thenAnswer((_) async => items);
+      when(
+        () => mockRepository.getAllItemsByDateRange(startDate, endDate),
+      ).thenAnswer((_) async => items);
 
       // Act
       final result = await usecase.call(startDate, endDate);
@@ -59,14 +77,40 @@ void main() {
     test('should respect limit parameter', () async {
       // Arrange
       const items = [
-        PurchaseItem(id: 'pi-1', purchaseId: 'p-1', productId: 'prod-a', quantity: 1.0),
-        PurchaseItem(id: 'pi-2', purchaseId: 'p-1', productId: 'prod-b', quantity: 2.0),
-        PurchaseItem(id: 'pi-3', purchaseId: 'p-1', productId: 'prod-c', quantity: 3.0),
-        PurchaseItem(id: 'pi-4', purchaseId: 'p-1', productId: 'prod-d', quantity: 4.0),
-        PurchaseItem(id: 'pi-5', purchaseId: 'p-1', productId: 'prod-e', quantity: 5.0),
+        PurchaseItem(
+          id: 'pi-1',
+          purchaseId: 'p-1',
+          productId: 'prod-a',
+          quantity: 1.0,
+        ),
+        PurchaseItem(
+          id: 'pi-2',
+          purchaseId: 'p-1',
+          productId: 'prod-b',
+          quantity: 2.0,
+        ),
+        PurchaseItem(
+          id: 'pi-3',
+          purchaseId: 'p-1',
+          productId: 'prod-c',
+          quantity: 3.0,
+        ),
+        PurchaseItem(
+          id: 'pi-4',
+          purchaseId: 'p-1',
+          productId: 'prod-d',
+          quantity: 4.0,
+        ),
+        PurchaseItem(
+          id: 'pi-5',
+          purchaseId: 'p-1',
+          productId: 'prod-e',
+          quantity: 5.0,
+        ),
       ];
-      when(() => mockRepository.getAllItemsByDateRange(startDate, endDate))
-          .thenAnswer((_) async => items);
+      when(
+        () => mockRepository.getAllItemsByDateRange(startDate, endDate),
+      ).thenAnswer((_) async => items);
 
       // Act
       final result = await usecase.call(startDate, endDate, limit: 3);
@@ -81,10 +125,16 @@ void main() {
     test('should have correct fields on TopProductResult', () async {
       // Arrange
       const items = [
-        PurchaseItem(id: 'pi-1', purchaseId: 'p-1', productId: 'prod-x', quantity: 7.5),
+        PurchaseItem(
+          id: 'pi-1',
+          purchaseId: 'p-1',
+          productId: 'prod-x',
+          quantity: 7.5,
+        ),
       ];
-      when(() => mockRepository.getAllItemsByDateRange(startDate, endDate))
-          .thenAnswer((_) async => items);
+      when(
+        () => mockRepository.getAllItemsByDateRange(startDate, endDate),
+      ).thenAnswer((_) async => items);
 
       // Act
       final result = await usecase.call(startDate, endDate);
@@ -96,25 +146,44 @@ void main() {
       expect(top.totalQuantity, 7.5);
     });
 
-    test('should aggregate quantities of same product across multiple items', () async {
-      // Arrange
-      const items = [
-        PurchaseItem(id: 'pi-1', purchaseId: 'p-1', productId: 'prod-a', quantity: 3.0),
-        PurchaseItem(id: 'pi-2', purchaseId: 'p-2', productId: 'prod-a', quantity: 4.0),
-        PurchaseItem(id: 'pi-3', purchaseId: 'p-1', productId: 'prod-b', quantity: 2.0),
-      ];
-      when(() => mockRepository.getAllItemsByDateRange(startDate, endDate))
-          .thenAnswer((_) async => items);
+    test(
+      'should aggregate quantities of same product across multiple items',
+      () async {
+        // Arrange
+        const items = [
+          PurchaseItem(
+            id: 'pi-1',
+            purchaseId: 'p-1',
+            productId: 'prod-a',
+            quantity: 3.0,
+          ),
+          PurchaseItem(
+            id: 'pi-2',
+            purchaseId: 'p-2',
+            productId: 'prod-a',
+            quantity: 4.0,
+          ),
+          PurchaseItem(
+            id: 'pi-3',
+            purchaseId: 'p-1',
+            productId: 'prod-b',
+            quantity: 2.0,
+          ),
+        ];
+        when(
+          () => mockRepository.getAllItemsByDateRange(startDate, endDate),
+        ).thenAnswer((_) async => items);
 
-      // Act
-      final result = await usecase.call(startDate, endDate);
+        // Act
+        final result = await usecase.call(startDate, endDate);
 
-      // Assert
-      expect(result.length, 2);
-      expect(result[0].productId, 'prod-a');
-      expect(result[0].totalQuantity, 7.0);
-      expect(result[1].productId, 'prod-b');
-      expect(result[1].totalQuantity, 2.0);
-    });
+        // Assert
+        expect(result.length, 2);
+        expect(result[0].productId, 'prod-a');
+        expect(result[0].totalQuantity, 7.0);
+        expect(result[1].productId, 'prod-b');
+        expect(result[1].totalQuantity, 2.0);
+      },
+    );
   });
 }

@@ -32,20 +32,14 @@ class CategoryModel {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'name': name,
-      'icon': icon,
-      'color': color,
-    };
+    return {'id': id, 'name': name, 'icon': icon, 'color': color};
+  }
+
+  Map<String, dynamic> toRemoteMap({required int updatedAt}) {
+    return {'name': name, 'icon': icon, 'color': color, 'updatedAt': updatedAt};
   }
 
   Category toEntity() {
-    return Category(
-      id: id,
-      name: name,
-      icon: icon,
-      color: color,
-    );
+    return Category(id: id, name: name, icon: icon, color: color);
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
+import 'app_dialog.dart';
 
 class ConfirmDialog extends StatelessWidget {
   const ConfirmDialog({
@@ -9,6 +9,7 @@ class ConfirmDialog extends StatelessWidget {
     this.confirmLabel = 'Confirmar',
     this.cancelLabel = 'Cancelar',
     this.isDestructive = false,
+    this.icon,
   });
 
   final String title;
@@ -16,6 +17,7 @@ class ConfirmDialog extends StatelessWidget {
   final String confirmLabel;
   final String cancelLabel;
   final bool isDestructive;
+  final IconData? icon;
 
   static Future<bool?> show(
     BuildContext context, {
@@ -24,6 +26,7 @@ class ConfirmDialog extends StatelessWidget {
     String confirmLabel = 'Confirmar',
     String cancelLabel = 'Cancelar',
     bool isDestructive = false,
+    IconData? icon,
   }) {
     return showDialog<bool>(
       context: context,
@@ -33,29 +36,32 @@ class ConfirmDialog extends StatelessWidget {
         confirmLabel: confirmLabel,
         cancelLabel: cancelLabel,
         isDestructive: isDestructive,
+        icon: icon,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(title),
-      content: Text(content),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: Text(cancelLabel),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          style: TextButton.styleFrom(
-            foregroundColor: isDestructive ? AppColors.error : AppColors.primary,
-          ),
-          child: Text(confirmLabel),
-        ),
-      ],
+    final tone = isDestructive
+        ? AppDialogTone.destructive
+        : AppDialogTone.primary;
+    return AppDialog(
+      title: title,
+      message: content,
+      icon:
+          icon ??
+          (isDestructive ? Icons.warning_amber_rounded : Icons.help_outline),
+      tone: tone,
+      primaryAction: AppDialogAction(
+        label: confirmLabel,
+        tone: tone,
+        onPressed: () => Navigator.of(context).pop(true),
+      ),
+      secondaryAction: AppDialogAction(
+        label: cancelLabel,
+        onPressed: () => Navigator.of(context).pop(false),
+      ),
     );
   }
 }

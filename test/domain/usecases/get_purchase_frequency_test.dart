@@ -21,8 +21,9 @@ void main() {
   group('GetPurchaseFrequency', () {
     test('should return empty map when there are no purchases', () async {
       // Arrange
-      when(() => mockRepository.getByDateRange(startDate, endDate))
-          .thenAnswer((_) async => []);
+      when(
+        () => mockRepository.getByDateRange(startDate, endDate),
+      ).thenAnswer((_) async => []);
 
       // Act
       final result = await usecase.call(startDate, endDate);
@@ -46,8 +47,9 @@ void main() {
           type: PurchaseType.midMonth,
         ),
       ];
-      when(() => mockRepository.getByDateRange(startDate, endDate))
-          .thenAnswer((_) async => purchases);
+      when(
+        () => mockRepository.getByDateRange(startDate, endDate),
+      ).thenAnswer((_) async => purchases);
 
       // Act
       final result = await usecase.call(startDate, endDate);
@@ -82,8 +84,9 @@ void main() {
           type: PurchaseType.main,
         ),
       ];
-      when(() => mockRepository.getByDateRange(startDate, endDate))
-          .thenAnswer((_) async => purchases);
+      when(
+        () => mockRepository.getByDateRange(startDate, endDate),
+      ).thenAnswer((_) async => purchases);
 
       // Act
       final result = await usecase.call(startDate, endDate);
@@ -108,8 +111,9 @@ void main() {
           type: PurchaseType.main,
         ),
       ];
-      when(() => mockRepository.getByDateRange(startDate, endDate))
-          .thenAnswer((_) async => purchases);
+      when(
+        () => mockRepository.getByDateRange(startDate, endDate),
+      ).thenAnswer((_) async => purchases);
 
       // Act
       final result = await usecase.call(startDate, endDate);

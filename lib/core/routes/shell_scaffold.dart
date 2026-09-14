@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../theme/app_colors.dart';
 import '../../presentation/providers/pantry_providers.dart';
-import '../../presentation/calculator/calculator_page.dart';
+import '../../presentation/shared/widgets/sync_status_bar.dart';
 
 class ShellScaffold extends ConsumerWidget {
   const ShellScaffold({super.key, required this.child});
@@ -38,15 +38,17 @@ class ShellScaffold extends ConsumerWidget {
     final lowCount = lowStock.valueOrNull ?? 0;
 
     return Scaffold(
-      body: child,
+      body: Column(
+        children: [
+          const SyncStatusBar(),
+          Expanded(child: child),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute(
-            fullscreenDialog: true,
-            builder: (_) => const CalculatorPage(),
-          ),
-        ),
-        child: const Icon(Icons.calculate),
+        heroTag: 'shell_nfce_fab',
+        onPressed: () => context.push('/nfce/scan'),
+        tooltip: 'Importar NFC-e',
+        child: const Icon(Icons.qr_code_scanner),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(

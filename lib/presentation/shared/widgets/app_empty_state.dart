@@ -26,15 +26,20 @@ class AppEmptyState extends StatelessWidget {
           children: [
             Icon(icon, size: 64, color: AppColors.textSecondary),
             const SizedBox(height: 16),
-            Text(title, style: AppTextStyles.heading2, textAlign: TextAlign.center),
+            Text(
+              title,
+              style: AppTextStyles.heading2,
+              textAlign: TextAlign.center,
+            ),
             if (subtitle != null) ...[
               const SizedBox(height: 8),
-              Text(subtitle!, style: AppTextStyles.bodySecondary, textAlign: TextAlign.center),
+              Text(
+                subtitle!,
+                style: AppTextStyles.bodySecondary,
+                textAlign: TextAlign.center,
+              ),
             ],
-            if (action != null) ...[
-              const SizedBox(height: 24),
-              action!,
-            ],
+            if (action != null) ...[const SizedBox(height: 24), action!],
           ],
         ),
       ),

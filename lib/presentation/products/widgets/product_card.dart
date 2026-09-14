@@ -10,18 +10,23 @@ class ProductCard extends StatelessWidget {
     required this.product,
     required this.categories,
     this.onTap,
+    this.onEdit,
+    this.onDelete,
   });
 
   final Product product;
   final List<Category> categories;
   final VoidCallback? onTap;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
     final categoryList = categories.where((c) => c.id == product.categoryId);
     final category = categoryList.isNotEmpty ? categoryList.first : null;
 
-    return Card(
+    final card = Card(
+      margin: EdgeInsets.zero,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
@@ -42,7 +47,9 @@ class ProductCard extends StatelessWidget {
                   category != null
                       ? IconData(category.icon, fontFamily: 'MaterialIcons')
                       : Icons.category,
-                  color: category != null ? Color(category.color) : AppColors.textSecondary,
+                  color: category != null
+                      ? Color(category.color)
+                      : AppColors.textSecondary,
                   size: 22,
                 ),
               ),
@@ -64,6 +71,36 @@ class ProductCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+
+    if (onEdit == null && onDelete == null) return card;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Dismissible(
+        key: ValueKey(product.id),
+        background: Container(
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.only(left: 24),
+          color: AppColors.primaryStrong,
+          child: const Icon(Icons.edit, color: AppColors.onPrimary),
+        ),
+        secondaryBackground: Container(
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: 24),
+          color: AppColors.error,
+          child: const Icon(Icons.delete, color: AppColors.onPrimary),
+        ),
+        confirmDismiss: (direction) async {
+          if (direction == DismissDirection.startToEnd) {
+            onEdit?.call();
+            return false;
+          }
+          onDelete?.call();
+          return false;
+        },
+        child: card,
       ),
     );
   }

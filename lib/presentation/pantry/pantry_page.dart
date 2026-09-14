@@ -2,17 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../../domain/entities/category.dart';
 import '../../domain/entities/pantry_item.dart';
 import '../../domain/entities/product.dart';
 import '../providers/pantry_providers.dart';
 import '../providers/product_providers.dart';
 import '../providers/category_providers.dart';
+import '../shared/utils/category_grouping.dart';
 import '../shared/widgets/app_empty_state.dart';
 import '../shared/widgets/app_error_state.dart';
 import '../shared/widgets/app_loading_state.dart';
+import '../shared/widgets/category_section_header.dart';
+import '../shared/widgets/app_icon_button.dart';
 import '../shared/widgets/confirm_dialog.dart';
+import '../calculator/calculator_page.dart';
 import 'pantry_add_page.dart';
 import 'pantry_edit_dialog.dart';
+import 'widgets/pantry_add_menu.dart';
 
 class PantryPage extends ConsumerWidget {
   const PantryPage({super.key});
@@ -33,11 +39,31 @@ class PantryPage extends ConsumerWidget {
         ),
         data: (items) => _buildList(context, ref, items, products, categories),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const PantryAddPage()),
-        ),
-        child: const Icon(Icons.add),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          FloatingActionButton.small(
+            heroTag: 'pantry_calculator_fab',
+            onPressed: () => Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute(
+                fullscreenDialog: true,
+                builder: (_) => const CalculatorPage(),
+              ),
+            ),
+            tooltip: 'Calculadora',
+            backgroundColor: AppColors.backgroundSecondary,
+            foregroundColor: AppColors.primaryStrong,
+            elevation: 2,
+            child: const Icon(Icons.calculate_outlined),
+          ),
+          const SizedBox(height: 12),
+          FloatingActionButton(
+            heroTag: 'pantry_add_fab',
+            onPressed: () => PantryAddMenu.show(context),
+            child: const Icon(Icons.add),
+          ),
+        ],
       ),
     );
   }
@@ -55,50 +81,90 @@ class PantryPage extends ConsumerWidget {
         title: 'Despensa vazia',
         subtitle: 'Adicione produtos para controlar seu estoque',
         action: ElevatedButton(
-          onPressed: () => Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => const PantryAddPage()),
-          ),
+          onPressed: () => Navigator.of(
+            context,
+            rootNavigator: true,
+          ).push(MaterialPageRoute(builder: (_) => const PantryAddPage())),
           child: const Text('Adicionar produto'),
         ),
       );
     }
-    final sorted = List<PantryItem>.from(items)
-      ..sort((a, b) => a.stockRatio.compareTo(b.stockRatio));
-    return ListView.separated(
+
+    final productList = products.valueOrNull ?? [];
+    final productMap = {for (final p in productList) p.id: p};
+    final categoryList = (categories.valueOrNull as List<Category>?) ?? [];
+
+    final groups = groupByCategory<PantryItem>(
+      items: items,
+      categoryIdOf: (item) => productMap[item.productId]?.categoryId ?? '',
+      categories: categoryList,
+    );
+
+    for (final g in groups) {
+      g.items.sort((a, b) => a.stockRatio.compareTo(b.stockRatio));
+    }
+
+    return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: sorted.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 8),
-      itemBuilder: (context, index) {
-        final item = sorted[index];
-        final productList = products.valueOrNull?.where((p) => p.id == item.productId);
-        final product = (productList != null && productList.isNotEmpty) ? productList.first : null;
-        final categoryList = categories.valueOrNull?.where((c) => c.id == product?.categoryId);
-        final category = (categoryList != null && categoryList.isNotEmpty) ? categoryList.first : null;
-        return _PantryTile(
-          item: item,
-          product: product,
-          categoryIcon: category != null
-              ? IconData(category.icon, fontFamily: 'MaterialIcons')
-              : Icons.category,
-          categoryColor: category != null
-              ? Color(category.color)
-              : AppColors.textSecondary,
-          onTap: () => PantryEditDialog.show(context, item: item, product: product),
-          onIncrement: () => ref.read(pantryProvider.notifier).incrementQuantity(item.id, 1),
-          onDecrement: () => ref.read(pantryProvider.notifier).decrementQuantity(item.id, 1),
-          onDelete: () async {
-            final confirmed = await ConfirmDialog.show(
-              context,
-              title: 'Remover da despensa',
-              content: 'Remover "${product?.name ?? 'item'}" da despensa?',
-              confirmLabel: 'Remover',
-              isDestructive: true,
-            );
-            if (confirmed == true) {
-              ref.read(pantryProvider.notifier).removeItem(item.id);
-            }
-          },
+      itemCount: groups.length,
+      itemBuilder: (context, i) {
+        final group = groups[i];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            CategorySectionHeader(category: group.category),
+            const SizedBox(height: 8),
+            ...group.items.map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _buildPantryTile(
+                  context,
+                  ref,
+                  item,
+                  productMap,
+                  group.category,
+                ),
+              ),
+            ),
+          ],
         );
+      },
+    );
+  }
+
+  Widget _buildPantryTile(
+    BuildContext context,
+    WidgetRef ref,
+    PantryItem item,
+    Map<String, Product> productMap,
+    Category? category,
+  ) {
+    final product = productMap[item.productId];
+    return _PantryTile(
+      item: item,
+      product: product,
+      categoryIcon: category != null
+          ? IconData(category.icon, fontFamily: 'MaterialIcons')
+          : Icons.category,
+      categoryColor: category != null
+          ? Color(category.color)
+          : AppColors.textSecondary,
+      onTap: () => PantryEditDialog.show(context, item: item, product: product),
+      onIncrement: () =>
+          ref.read(pantryProvider.notifier).incrementQuantity(item.id, 1),
+      onDecrement: () =>
+          ref.read(pantryProvider.notifier).decrementQuantity(item.id, 1),
+      onDelete: () async {
+        final confirmed = await ConfirmDialog.show(
+          context,
+          title: 'Remover da despensa',
+          content: 'Remover "${product?.name ?? 'item'}" da despensa?',
+          confirmLabel: 'Remover',
+          isDestructive: true,
+        );
+        if (confirmed == true) {
+          ref.read(pantryProvider.notifier).removeItem(item.id);
+        }
       },
     );
   }
@@ -224,17 +290,19 @@ class _PantryTile extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton(
-          onPressed: onDecrement,
-          icon: const Icon(Icons.remove_circle_outline, size: 22),
+        AppIconButton(
+          icon: Icons.remove_circle_outline,
+          iconSize: 22,
           color: AppColors.textSecondary,
-          visualDensity: VisualDensity.compact,
+          tooltip: 'Diminuir',
+          onPressed: onDecrement,
         ),
-        IconButton(
+        AppIconButton(
+          icon: Icons.add_circle_outline,
+          iconSize: 22,
+          color: AppColors.primaryStrong,
+          tooltip: 'Aumentar',
           onPressed: onIncrement,
-          icon: const Icon(Icons.add_circle_outline, size: 22),
-          color: AppColors.primary,
-          visualDensity: VisualDensity.compact,
         ),
       ],
     );
