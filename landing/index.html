@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repooor: your pantry, restocked on time</title>
+<meta name="description" content="A Flutter app for the home pantry: ideal versus current stock, receipt scanning (NFC-e), and the cost of the next trip to the market before you leave.">
+<link rel="canonical" href="https://repooor.mikaeldavid.dev/">
+<meta property="og:title" content="Repooor: your pantry, restocked on time">
+<meta property="og:description" content="Know what you have, what is running low and what the next trip to the market will cost.">
+<meta property="og:url" content="https://repooor.mikaeldavid.dev/">
+<meta property="og:image" content="https://repooor.mikaeldavid.dev/img/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="img/icon.png">
+<style>
+:root{
+  --green:#53B175; --green-strong:#2C7A48; --green-light:rgba(83,177,117,.1);
+  --ink:#181725; --muted:#6B6B6B; --line:#E2E2E2; --soft:#F2F3F2; --bg:#fff;
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono",Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.5}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+
+header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid transparent}
+.nav{height:68px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;letter-spacing:-.3px}
+.brand img{width:32px;height:32px;border-radius:9px}
+.nav nav{display:flex;gap:4px;align-items:center}
+.nav nav a{padding:8px 12px;border-radius:10px;font-size:15px;color:var(--muted);font-weight:500}
+.nav nav a:hover{color:var(--ink);background:var(--soft)}
+.btn{display:inline-flex;align-items:center;gap:8px;height:48px;padding:0 22px;border-radius:14px;font-weight:600;font-size:16px;transition:background .15s,transform .1s}
+.btn:active{transform:scale(.98)}
+.btn-primary{background:var(--green-strong);color:#fff}
+.btn-primary:hover{background:#246a3d}
+.btn-quiet{background:var(--soft);color:var(--ink)}
+.btn-quiet:hover{background:#e7e9e7}
+.btn svg{width:18px;height:18px}
+
+.hero{display:grid;grid-template-columns:1.05fr 1fr;gap:48px;align-items:center;padding:64px 0 40px}
+h1{font-size:clamp(40px,6vw,68px);line-height:1.02;letter-spacing:-.04em;font-weight:800}
+h1 span{color:var(--green)}
+.lead{margin-top:22px;font-size:19px;color:var(--muted);max-width:480px}
+.cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:32px}
+.note{margin-top:16px;font-size:14px;color:var(--muted)}
+.phones{position:relative;height:560px}
+.phone{position:absolute;width:262px;border-radius:40px;background:#fff;padding:8px;border:1px solid var(--line);box-shadow:0 24px 60px rgba(24,23,37,.16)}
+.phone img{display:block;width:100%;border-radius:32px}
+.phones .a{left:4%;top:20px;transform:rotate(-4deg)}
+.phones .b{right:4%;top:0;transform:rotate(3deg)}
+
+section{padding:72px 0}
+.soft{background:var(--soft)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.row.flip .text{order:2}
+.eyebrow{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--green-strong)}
+h2{margin-top:10px;font-size:clamp(30px,4vw,44px);line-height:1.08;letter-spacing:-.03em;font-weight:800}
+.text p{margin-top:16px;font-size:17px;color:var(--muted);max-width:470px}
+.text ul{margin-top:18px;padding:0;list-style:none;display:grid;gap:10px}
+.text li{display:flex;gap:10px;font-size:16px}
+.text li::before{content:"";flex:0 0 8px;height:8px;margin-top:9px;border-radius:50%;background:var(--green)}
+.shot{display:flex;justify-content:center}
+.shot .phone{position:static;width:290px}
+
+.built h2{text-align:center}
+.built .sub{text-align:center;color:var(--muted);font-size:17px;margin:14px auto 0;max-width:560px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:40px}
+.cell{border:1px solid var(--line);border-radius:18px;padding:24px;background:#fff}
+.cell b{font-size:18px;letter-spacing:-.2px}
+.cell p{margin-top:8px;color:var(--muted);font-size:15.5px}
+.cell code{font-family:var(--mono);font-size:13.5px;background:var(--soft);padding:2px 6px;border-radius:6px;color:var(--ink)}
+
+.end{text-align:center}
+.end .cta{justify-content:center}
+footer{border-top:1px solid var(--line);padding:28px 0;color:var(--muted);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer a{color:var(--ink)}
+
+@media (max-width:860px){
+  .hero,.row{grid-template-columns:1fr}
+  .row.flip .text{order:0}
+  .phones{height:470px}
+  .phone{width:220px}
+  .shot .phone{width:250px}
+  .grid{grid-template-columns:1fr}
+  .nav nav a.hide{display:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top"><img src="img/icon.png" alt="">Repooor</a>
+    <nav>
+      <a class="hide" href="#receipt">Receipts</a>
+      <a class="hide" href="#projection">Projection</a>
+      <a class="hide" href="#built">How it's built</a>
+      <a href="https://github.com/MikaelDDavidd/repooor">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap hero">
+    <div>
+      <h1>Your pantry,<br><span>restocked on time.</span></h1>
+      <p class="lead">Know what you have, what is running low and what the next trip to the market will cost. Scan the receipt and the purchase is already filled in.</p>
+      <div class="cta">
+        <a class="btn btn-primary" href="https://github.com/MikaelDDavidd/repooor">
+          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          View on GitHub</a>
+        <a class="btn btn-quiet" href="#receipt">See how it works</a>
+      </div>
+      <p class="note">Flutter app for iOS and Android. Not on the app stores yet.</p>
+    </div>
+    <div class="phones" aria-hidden="true">
+      <div class="phone a"><img src="img/2-pantry.webp" alt=""></div>
+      <div class="phone b"><img src="img/1-home.webp" alt=""></div>
+    </div>
+  </div>
+
+  <section class="soft" id="receipt">
+    <div class="wrap row">
+      <div class="text">
+        <div class="eyebrow">Scan the receipt</div>
+        <h2>The receipt fills in the purchase.</h2>
+        <p>Point the camera at the QR code of a Brazilian electronic receipt (NFC-e). Repooor downloads the invoice from the state tax portal and matches every line to a product you already have.</p>
+        <ul>
+          <li>Each line shows how it matched, with suggestions for the rest.</li>
+          <li>New products come with a suggested category.</li>
+          <li>Finishing the purchase adds the quantities to the pantry.</li>
+        </ul>
+      </div>
+      <div class="shot"><div class="phone"><img src="img/4-receipt-review.webp" alt="Reviewing a scanned receipt: each line matched to a product, with its price"></div></div>
+    </div>
+  </section>
+
+  <section id="projection">
+    <div class="wrap row flip">
+      <div class="text">
+        <div class="eyebrow">Market projection</div>
+        <h2>Know the cost before you leave.</h2>
+        <p>Everything below its ideal amount, priced with what you paid last time. Turn it into a shopping list, tick items off in the store, then compare the projection with the real receipt.</p>
+      </div>
+      <div class="shot"><div class="phone"><img src="img/3-projection.webp" alt="Market projection: items to buy and the estimated total of the next trip"></div></div>
+    </div>
+  </section>
+
+  <section class="soft">
+    <div class="wrap row">
+      <div class="text">
+        <div class="eyebrow">Spending</div>
+        <h2>See where the money goes.</h2>
+        <p>This month's spending by category, the products you buy most, how often you shop, and the price history of each product.</p>
+      </div>
+      <div class="shot"><div class="phone"><img src="img/5-analytics.webp" alt="Spending this month and consumption by category"></div></div>
+    </div>
+  </section>
+
+  <section class="built" id="built">
+    <div class="wrap">
+      <div class="eyebrow" style="text-align:center">How it's built</div>
+      <h2>Small app, real engineering.</h2>
+      <p class="sub">Flutter, Riverpod and sqflite, organized in clean layers, with over 500 tests.</p>
+      <div class="grid">
+        <div class="cell"><b>Offline first</b><p>Data lives on the phone. Every write is queued and backed up to Appwrite when there is signal; permanent errors are kept apart from transient ones.</p></div>
+        <div class="cell"><b>One parser per state</b><p>Receipts differ by state. A factory picks the parser from the QR; XML invoices go through a generic parser tested against a real one.</p></div>
+        <div class="cell"><b>Matching in Portuguese</b><p><code>ARROZ T1 5KG CAMIL</code> becomes the rice you already have: accents, units, plurals and synonyms are normalized before comparing.</p></div>
+        <div class="cell"><b>Migrations that keep data</b><p>Seven schema versions built on a phone with real data, some of them merging duplicate products as they migrate.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="soft end">
+    <div class="wrap">
+      <h2>Read the code.</h2>
+      <p class="lead" style="margin:16px auto 0">Repooor is open source under the MIT license.</p>
+      <div class="cta"><a class="btn btn-primary" href="https://github.com/MikaelDDavidd/repooor">View on GitHub</a></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Repooor · MIT licensed</span>
+    <span>Made by <a href="https://mikaeldavid.dev">Mikael David</a></span>
+  </div>
+</footer>
+</body>
+</html>
