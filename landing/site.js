@@ -274,6 +274,40 @@
     const next = pick();
     if (next !== perch) flyTo(next);
   }
+  // A cesta já sai no primeiro movimento de rolagem (roda, trackpad, teclado ou dedo), na direção
+  // do gesto, sem esperar a próxima seção chegar a 86% da tela. O snap leva a página até lá.
+  let lastGesture = 0;
+  function anticipate(direction) {
+    const now = performance.now();
+    const fresh = now - lastGesture > 220;
+    lastGesture = now;
+    if (!fresh || !direction || flying || !introDone) return;
+    const next = perches[perches.indexOf(perch) + direction];
+    if (!next) return;
+    const r = next.getBoundingClientRect();
+    if (r.top > innerHeight * 1.15 || r.bottom < -innerHeight * 0.15) return;
+    flyTo(next);
+  }
+  window.addEventListener("wheel", (event) => Math.abs(event.deltaY) > 3 && anticipate(Math.sign(event.deltaY)), { passive: true });
+  window.addEventListener("keydown", (event) => {
+    const dir = { ArrowDown: 1, PageDown: 1, " ": 1, ArrowUp: -1, PageUp: -1 }[event.key];
+    if (dir && !event.target.closest?.("input, textarea")) anticipate(event.key === " " && event.shiftKey ? -1 : dir);
+  });
+  let touchY = null;
+  window.addEventListener("touchstart", (event) => (touchY = event.touches[0].clientY), { passive: true });
+  window.addEventListener(
+    "touchmove",
+    (event) => {
+      if (touchY === null) return;
+      const dy = touchY - event.touches[0].clientY;
+      if (Math.abs(dy) > 24) {
+        anticipate(Math.sign(dy));
+        touchY = null;
+      }
+    },
+    { passive: true },
+  );
+
   let checkQueued = false;
   window.addEventListener(
     "scroll",
