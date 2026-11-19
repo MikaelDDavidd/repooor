@@ -1,193 +1,314 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Repooor: your pantry, restocked on time</title>
-<meta name="description" content="A Flutter app for the home pantry: ideal versus current stock, receipt scanning (NFC-e), and the cost of the next trip to the market before you leave.">
-<link rel="canonical" href="https://repooor.mikaeldavid.dev/">
-<meta property="og:title" content="Repooor: your pantry, restocked on time">
-<meta property="og:description" content="Know what you have, what is running low and what the next trip to the market will cost.">
-<meta property="og:url" content="https://repooor.mikaeldavid.dev/">
-<meta property="og:image" content="https://repooor.mikaeldavid.dev/img/og.png">
-<meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="img/icon.png">
-<style>
-:root{
-  --green:#53B175; --green-strong:#2C7A48; --green-light:rgba(83,177,117,.1);
-  --ink:#181725; --muted:#6B6B6B; --line:#E2E2E2; --soft:#F2F3F2; --bg:#fff;
-  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-  --mono:ui-monospace,"SF Mono",Menlo,monospace;
-}
-*{box-sizing:border-box;margin:0}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;line-height:1.5}
-a{color:inherit;text-decoration:none}
-.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Repooor: your pantry, restocked on time</title>
+    <meta
+      name="description"
+      content="A Flutter app for the home pantry: what you have against what you want, receipt scanning (NFC-e) and the cost of the next trip to the market before you leave."
+    />
+    <link rel="canonical" href="https://repooor.mikaeldavid.dev/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Repooor" />
+    <meta property="og:description" content="Your pantry, restocked on time. Know what is running low and what the next trip to the market will cost." />
+    <meta property="og:url" content="https://repooor.mikaeldavid.dev/" />
+    <meta property="og:image" content="https://repooor.mikaeldavid.dev/img/og-thumb.png" />
+    <meta property="og:image:width" content="200" />
+    <meta property="og:image:height" content="200" />
+    <meta property="og:image:alt" content="Repooor app icon: a white basket on green" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:image" content="https://repooor.mikaeldavid.dev/img/og-thumb.png" />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" href="img/icon-192.png" />
+    <link rel="apple-touch-icon" href="img/icon-192.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" />
+    <link rel="stylesheet" href="site.css?v=2" />
+    <link rel="stylesheet" href="app.css?v=2" />
+  </head>
+  <body id="top">
+    <div class="intro" id="intro" aria-hidden="true">
+      <div class="intro-mark" id="intro-mark"><img src="img/icon-512.png" alt="" /></div>
+      <i class="intro-band"></i>
+    </div>
 
-header{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.88);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid transparent}
-.nav{height:68px;display:flex;align-items:center;justify-content:space-between}
-.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;letter-spacing:-.3px}
-.brand img{width:32px;height:32px;border-radius:9px}
-.nav nav{display:flex;gap:4px;align-items:center}
-.nav nav a{padding:8px 12px;border-radius:10px;font-size:15px;color:var(--muted);font-weight:500}
-.nav nav a:hover{color:var(--ink);background:var(--soft)}
-.btn{display:inline-flex;align-items:center;gap:8px;height:48px;padding:0 22px;border-radius:14px;font-weight:600;font-size:16px;transition:background .15s,transform .1s}
-.btn:active{transform:scale(.98)}
-.btn-primary{background:var(--green-strong);color:#fff}
-.btn-primary:hover{background:#246a3d}
-.btn-quiet{background:var(--soft);color:var(--ink)}
-.btn-quiet:hover{background:#e7e9e7}
-.btn svg{width:18px;height:18px}
-
-.hero{display:grid;grid-template-columns:1.05fr 1fr;gap:48px;align-items:center;padding:64px 0 40px}
-h1{font-size:clamp(40px,6vw,68px);line-height:1.02;letter-spacing:-.04em;font-weight:800}
-h1 span{color:var(--green)}
-.lead{margin-top:22px;font-size:19px;color:var(--muted);max-width:480px}
-.cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:32px}
-.note{margin-top:16px;font-size:14px;color:var(--muted)}
-.phones{position:relative;height:560px}
-.phone{position:absolute;width:262px;border-radius:40px;background:#fff;padding:8px;border:1px solid var(--line);box-shadow:0 24px 60px rgba(24,23,37,.16)}
-.phone img{display:block;width:100%;border-radius:32px}
-.phones .a{left:4%;top:20px;transform:rotate(-4deg)}
-.phones .b{right:4%;top:0;transform:rotate(3deg)}
-
-section{padding:72px 0}
-.soft{background:var(--soft)}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
-.row.flip .text{order:2}
-.eyebrow{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--green-strong)}
-h2{margin-top:10px;font-size:clamp(30px,4vw,44px);line-height:1.08;letter-spacing:-.03em;font-weight:800}
-.text p{margin-top:16px;font-size:17px;color:var(--muted);max-width:470px}
-.text ul{margin-top:18px;padding:0;list-style:none;display:grid;gap:10px}
-.text li{display:flex;gap:10px;font-size:16px}
-.text li::before{content:"";flex:0 0 8px;height:8px;margin-top:9px;border-radius:50%;background:var(--green)}
-.shot{display:flex;justify-content:center}
-.shot .phone{position:static;width:290px}
-
-.built h2{text-align:center}
-.built .sub{text-align:center;color:var(--muted);font-size:17px;margin:14px auto 0;max-width:560px}
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:40px}
-.cell{border:1px solid var(--line);border-radius:18px;padding:24px;background:#fff}
-.cell b{font-size:18px;letter-spacing:-.2px}
-.cell p{margin-top:8px;color:var(--muted);font-size:15.5px}
-.cell code{font-family:var(--mono);font-size:13.5px;background:var(--soft);padding:2px 6px;border-radius:6px;color:var(--ink)}
-
-.end{text-align:center}
-.end .cta{justify-content:center}
-footer{border-top:1px solid var(--line);padding:28px 0;color:var(--muted);font-size:14px}
-footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
-footer a{color:var(--ink)}
-
-@media (max-width:860px){
-  .hero,.row{grid-template-columns:1fr}
-  .row.flip .text{order:0}
-  .phones{height:470px}
-  .phone{width:220px}
-  .shot .phone{width:250px}
-  .grid{grid-template-columns:1fr}
-  .nav nav a.hide{display:none}
-}
-</style>
-</head>
-<body>
-<header>
-  <div class="wrap nav">
-    <a class="brand" href="#top"><img src="img/icon.png" alt="">Repooor</a>
-    <nav>
-      <a class="hide" href="#receipt">Receipts</a>
-      <a class="hide" href="#projection">Projection</a>
-      <a class="hide" href="#built">How it's built</a>
-      <a href="https://github.com/MikaelDDavidd/repooor">GitHub</a>
-    </nav>
-  </div>
-</header>
-
-<main id="top">
-  <div class="wrap hero">
-    <div>
-      <h1>Your pantry,<br><span>restocked on time.</span></h1>
-      <p class="lead">Know what you have, what is running low and what the next trip to the market will cost. Scan the receipt and the purchase is already filled in.</p>
-      <div class="cta">
-        <a class="btn btn-primary" href="https://github.com/MikaelDDavidd/repooor">
-          <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-          View on GitHub</a>
-        <a class="btn btn-quiet" href="#receipt">See how it works</a>
+    <header class="header" id="header">
+      <div class="header-inner">
+        <div class="brand">
+          <a class="logo" href="#top"><span class="visually-hidden">Back to top</span>
+            <span class="logo-tile">
+              <img src="img/icon-192.png" alt="" width="40" height="40" />
+              <span class="back" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6" /></svg>
+              </span>
+            </span>
+          </a>
+          <span class="wordmark">Repooor</span>
+          <span class="version cut rise" data-delay="0"><span class="fill"></span>beta</span>
+        </div>
+        <nav class="nav" aria-label="Main">
+          <a class="nav-link cut hover-snap" href="#features">
+            <span class="fill"></span>
+            <svg class="ic-grid" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <rect class="c1" x="3" y="3" width="8" height="8" rx="2" />
+              <rect class="c2" x="13" y="3" width="8" height="8" rx="2" />
+              <rect class="c3" x="3" y="13" width="8" height="8" rx="2" />
+              <rect class="c4" x="13" y="13" width="8" height="8" rx="2" />
+            </svg>
+            Features
+          </a>
+          <a class="nav-link cut hover-snap hide-md" href="#app">
+            <span class="fill"></span>
+            <svg class="ic-phone" viewBox="0 0 24 24" aria-hidden="true">
+              <rect class="frame" x="6" y="2.5" width="12" height="19" rx="3" fill="none" stroke="currentColor" stroke-width="2.2" />
+              <rect class="pill" x="10" y="5" width="4" height="1.6" rx=".8" fill="currentColor" />
+            </svg>
+            The app
+          </a>
+          <a class="btn btn-info cut" href="https://github.com/MikaelDDavidd/repooor" target="_blank" rel="noopener">
+            <span class="fill"></span>
+            <span class="lead"><span class="dot"></span></span>
+            <span class="label">GitHub</span>
+            <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </a>
+        </nav>
       </div>
-      <p class="note">Flutter app for iOS and Android. Not on the app stores yet.</p>
-    </div>
-    <div class="phones" aria-hidden="true">
-      <div class="phone a"><img src="img/2-pantry.webp" alt=""></div>
-      <div class="phone b"><img src="img/1-home.webp" alt=""></div>
-    </div>
-  </div>
+    </header>
 
-  <section class="soft" id="receipt">
-    <div class="wrap row">
-      <div class="text">
-        <div class="eyebrow">Scan the receipt</div>
-        <h2>The receipt fills in the purchase.</h2>
-        <p>Point the camera at the QR code of a Brazilian electronic receipt (NFC-e). Repooor downloads the invoice from the state tax portal and matches every line to a product you already have.</p>
-        <ul>
-          <li>Each line shows how it matched, with suggestions for the rest.</li>
-          <li>New products come with a suggested category.</li>
-          <li>Finishing the purchase adds the quantities to the pantry.</li>
-        </ul>
+    <main>
+      <div class="page">
+        <section class="hero snap">
+          <div class="perch perch-hero" data-perch="hero" data-scale="1" data-scale-m=".72" aria-hidden="true"></div>
+          <p class="kicker rise" data-delay="120">A pantry app for Brazilian homes</p>
+          <h1 class="rise tilt" data-delay="150">
+            Your pantry,<br />
+            <mark>restocked on time.</mark>
+          </h1>
+          <p class="lede rise" data-delay="300">
+            Know what you have, what is running low and what the next trip to the market will cost. Scan the receipt
+            and the purchase is already filled in.
+          </p>
+          <div class="cta-row rise" data-delay="300">
+            <a class="btn btn-primary cut" href="#app">
+              <span class="fill"></span>
+              <span class="lead"><span class="dot"></span></span>
+              <span class="label">See it work</span>
+              <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </a>
+            <span class="btn-seal cut" id="seal-btn">
+              <span class="fill"></span>
+              <svg class="seal" viewBox="0 0 24 24" aria-hidden="true">
+                <g class="kick">
+                  <path class="badge" d="M12 1L15.56 3.41L19.78 4.22L20.59 8.44L23 12L20.59 15.56L19.78 19.78L15.56 20.59L12 23L8.44 20.59L4.22 19.78L3.41 15.56L1 12L3.41 8.44L4.22 4.22L8.44 3.41Z" />
+                </g>
+                <path class="check" d="M8 12.3l2.6 2.6L16 9.5" />
+              </svg>
+              Coming soon
+              <span class="chip cut"><span class="fill"></span>iOS · Android</span>
+            </span>
+          </div>
+        </section>
+
+        <section class="stage-wrap snap rise" data-delay="500" id="app" aria-label="Interactive demo">
+          <div class="perch perch-telas" data-perch="app" data-scale=".5" data-scale-m=".34" aria-hidden="true"></div>
+          <div class="stage" id="stage">
+            <div class="stage-frame"><div class="stage-glow" aria-hidden="true"></div></div>
+
+            <div class="topbar">
+              <div class="pill pill-left cut">
+                <span class="fill"></span>
+                <span class="a"><img src="img/icon-192.png" alt="" width="22" height="22" /></span>
+                <span class="b">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h16l-1.6 9.2a2 2 0 0 1-2 1.8H7.6a2 2 0 0 1-2-1.8z" /><path d="M9 9l3-5 3 5" /></svg>
+                </span>
+              </div>
+              <div class="pill pill-right cut">
+                <span class="fill"></span>
+                <span class="scene-name" id="pill-name">Low stock</span>
+                <span class="value roll" id="pill-value" data-value="6"></span>
+              </div>
+            </div>
+
+            <div class="titles" id="titles" aria-live="polite">
+              <div class="title on" data-scene="intro">
+                <p class="kick">Tap the phone</p>
+                <p class="big">Open<br /><em>the app</em></p>
+              </div>
+              <div class="title" data-scene="home">
+                <p class="kick">What is running low</p>
+                <p class="big">One look<br /><em>at home</em></p>
+              </div>
+              <div class="title" data-scene="pantry">
+                <p class="kick">What you have, what you want</p>
+                <p class="big">A pantry<br /><em>with a goal</em></p>
+              </div>
+              <div class="title" data-scene="receipt">
+                <p class="kick">The NFC-e QR code</p>
+                <p class="big">Scan<br /><em>the receipt</em></p>
+              </div>
+              <div class="title" data-scene="market">
+                <p class="kick">Priced with your last purchase</p>
+                <p class="big">The cost<br /><em>before you go</em></p>
+              </div>
+              <div class="title" data-scene="spending">
+                <p class="kick">By category and by product</p>
+                <p class="big">Where the<br /><em>money goes</em></p>
+              </div>
+            </div>
+
+            <p class="step-caption" id="step-caption" aria-live="polite"></p>
+
+            <div class="counter" id="counter" aria-hidden="true">
+              <span class="num roll" id="counter-num" data-value="01"></span>
+              <span class="of">/ 05</span>
+              <span class="steps" id="steps"></span>
+            </div>
+
+            <div class="phone" id="phone">
+              <div class="phone-screen" id="phone-screen">
+                <div class="splash" id="splash">
+                  <img class="splash-icon" src="img/icon-512.png" alt="" />
+                  <span class="shimmer">Tap to open</span>
+                </div>
+                <div class="app" id="app-screen"></div>
+                <span class="touch" id="touch" aria-hidden="true"></span>
+              </div>
+            </div>
+
+            <div class="phases cut" id="phases" role="tablist" aria-label="App screens">
+              <span class="fill"></span>
+              <span class="phase-slider" id="phase-slider"></span>
+              <button class="phase on" type="button" role="tab" data-scene="home">Home</button>
+              <button class="phase" type="button" role="tab" data-scene="pantry">Pantry</button>
+              <button class="phase" type="button" role="tab" data-scene="receipt">Receipt</button>
+              <button class="phase" type="button" role="tab" data-scene="market">Market</button>
+              <button class="phase" type="button" role="tab" data-scene="spending">Spending</button>
+            </div>
+          </div>
+          <div class="psst" id="psst">
+            <svg viewBox="0 0 14 14" id="psst-cursor" aria-hidden="true"><path d="M2 1.5l9.5 4.2-4.1 1.3-1.6 4.3z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" /></svg>
+            Psst… it plays on its own. Pick a tab to jump.
+          </div>
+        </section>
+
+        <section class="features snap rise" data-delay="1100" id="features" aria-label="Features">
+          <div class="perch perch-recursos" data-perch="features" data-scale=".62" data-scale-m=".5" aria-hidden="true"></div>
+          <div class="grid">
+            <div class="cell">
+              <svg class="icon f-bars" viewBox="0 0 72 72" fill="currentColor" aria-hidden="true">
+                <rect class="t1" x="8" y="14" width="56" height="10" rx="5" opacity=".18" /><rect class="b1" x="8" y="14" width="40" height="10" rx="5" />
+                <rect class="t2" x="8" y="31" width="56" height="10" rx="5" opacity=".18" /><rect class="b2" x="8" y="31" width="18" height="10" rx="5" />
+                <rect class="t3" x="8" y="48" width="56" height="10" rx="5" opacity=".18" /><rect class="b3" x="8" y="48" width="48" height="10" rx="5" />
+              </svg>
+              <h3>A pantry<br />with a goal</h3>
+              <p>Each product has what you have and what you want. The gap drives the rest of the app.</p>
+            </div>
+            <div class="cell">
+              <svg class="icon f-scan" viewBox="0 0 72 72" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path class="corners" d="M8 22V12a4 4 0 0 1 4-4h10M50 8h10a4 4 0 0 1 4 4v10M64 50v10a4 4 0 0 1-4 4H50M22 64H12a4 4 0 0 1-4-4V50" />
+                <path class="line" d="M14 36h44" />
+              </svg>
+              <h3>Scan<br />the receipt</h3>
+              <p>Point at the NFC-e QR code. The invoice comes from the state tax portal, line by line.</p>
+            </div>
+            <div class="cell">
+              <svg class="icon f-link" viewBox="0 0 72 72" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" aria-hidden="true">
+                <g class="l"><path d="M30 42l-6 6a9 9 0 0 1-13-13l8-8a9 9 0 0 1 13 0" /></g>
+                <g class="r"><path d="M42 30l6-6a9 9 0 0 1 13 13l-8 8a9 9 0 0 1-13 0" /></g>
+                <path class="mid" d="M29 43l14-14" />
+              </svg>
+              <h3>Matched to<br />your products</h3>
+              <p>ARROZ T1 5KG CAMIL lands on the rice you already have, not on a duplicate.</p>
+            </div>
+            <div class="cell">
+              <svg class="icon f-tag" viewBox="0 0 72 72" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="round" aria-hidden="true">
+                <path class="tag" d="M8 12v22l30 30 26-26-30-30H12a4 4 0 0 0-4 4z" />
+                <circle class="hole" cx="22" cy="22" r="5" fill="currentColor" stroke="none" />
+              </svg>
+              <h3>The cost<br />before you go</h3>
+              <p>Everything below its ideal amount, priced with what you paid last time.</p>
+            </div>
+            <div class="cell">
+              <svg class="icon f-list" viewBox="0 0 72 72" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path class="c1" d="M10 18l4 4 8-8" /><path d="M32 18h30" />
+                <path class="c2" d="M10 36l4 4 8-8" /><path d="M32 36h30" />
+                <path class="c3" d="M10 54l4 4 8-8" /><path d="M32 54h30" />
+              </svg>
+              <h3>Shopping<br />lists</h3>
+              <p>Monthly or one-off. Tick items off in the store; finishing updates the pantry.</p>
+            </div>
+            <div class="cell">
+              <svg class="icon f-donut" viewBox="0 0 72 72" fill="none" stroke-width="12" aria-hidden="true">
+                <circle cx="36" cy="36" r="22" stroke="currentColor" opacity=".18" />
+                <circle class="arc" cx="36" cy="36" r="22" stroke="currentColor" stroke-dasharray="138.2" stroke-dashoffset="48" transform="rotate(-90 36 36)" />
+              </svg>
+              <h3>Where the<br />money goes</h3>
+              <p>Spending by category, the products you buy most and the price history of each.</p>
+            </div>
+            <div class="cell">
+              <svg class="icon f-cloud" viewBox="0 0 72 72" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path class="cl" d="M22 50h30a12 12 0 0 0 0-24 18 18 0 0 0-34 4 10 10 0 0 0 4 20z" />
+                <path class="ar" d="M36 58V38M28 46l8-8 8 8" />
+              </svg>
+              <h3>Works<br />offline</h3>
+              <p>Data lives on the phone. A queue backs it up to Appwrite when there is signal.</p>
+            </div>
+            <div class="cell">
+              <svg class="icon f-check" viewBox="0 0 72 72" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path class="shield" d="M36 6l24 9v18c0 15-10 26-24 32C22 59 12 48 12 33V15z" />
+                <path class="tick" d="M25 35l8 8 15-15" />
+              </svg>
+              <h3>Over 500<br />tests</h3>
+              <p>Flutter, Riverpod and sqflite in clean layers, with the receipt parsers tested on real invoices.</p>
+            </div>
+          </div>
+
+          <div class="closing">
+            <div class="perch perch-final" data-perch="final" data-scale=".78" data-scale-m=".6" aria-hidden="true"></div>
+            <a class="btn btn-primary cut" href="https://github.com/MikaelDDavidd/repooor" target="_blank" rel="noopener">
+              <span class="fill"></span>
+              <span class="lead"><span class="dot"></span></span>
+              <span class="label">Read the code</span>
+              <svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </a>
+            <span class="caption"><span class="dot"></span>Open source, MIT license · not on the app stores yet</span>
+          </div>
+        </section>
       </div>
-      <div class="shot"><div class="phone"><img src="img/4-receipt-review.webp" alt="Reviewing a scanned receipt: each line matched to a product, with its price"></div></div>
-    </div>
-  </section>
+    </main>
 
-  <section id="projection">
-    <div class="wrap row flip">
-      <div class="text">
-        <div class="eyebrow">Market projection</div>
-        <h2>Know the cost before you leave.</h2>
-        <p>Everything below its ideal amount, priced with what you paid last time. Turn it into a shopping list, tick items off in the store, then compare the projection with the real receipt.</p>
+    <footer class="snap-end rise" data-delay="1300">
+      <div class="socials">
+        <a class="social cut" href="https://www.linkedin.com/in/mikael-david-813975191/" target="_blank" rel="noopener">
+          <span class="visually-hidden">LinkedIn</span>
+          <span class="fill"></span>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5.3 8.6h3v10.6h-3zM6.8 3.8a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6zM10.2 8.6h2.9V10c.4-.8 1.4-1.6 3-1.6 3.1 0 3.7 2 3.7 4.7v6.1h-3v-5.4c0-1.3 0-2.9-1.8-2.9s-2 1.4-2 2.8v5.5h-2.9z" /></svg>
+        </a>
+        <a class="social cut" href="https://github.com/MikaelDDavidd/repooor" target="_blank" rel="noopener">
+          <span class="visually-hidden">GitHub</span>
+          <span class="fill"></span>
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.5a9.5 9.5 0 0 0-3 18.5c.5.1.7-.2.7-.5v-1.7c-2.6.6-3.2-1.2-3.2-1.2-.4-1.1-1-1.4-1-1.4-.9-.6 0-.6 0-.6 1 .1 1.5 1 1.5 1 .9 1.5 2.3 1 2.8.8.1-.6.3-1 .6-1.3-2.1-.2-4.3-1-4.3-4.7 0-1 .4-1.9 1-2.6-.1-.3-.4-1.2.1-2.5 0 0 .8-.3 2.6 1a9 9 0 0 1 4.7 0c1.8-1.3 2.6-1 2.6-1 .5 1.3.2 2.2.1 2.5.6.7 1 1.6 1 2.6 0 3.7-2.2 4.5-4.3 4.7.3.3.6.9.6 1.8v2.6c0 .3.2.6.7.5A9.5 9.5 0 0 0 12 2.5z" /></svg>
+        </a>
+        <a class="social cut" href="https://mikaeldavid.dev" target="_blank" rel="noopener">
+          <span class="visually-hidden">Portfolio</span>
+          <span class="fill"></span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.6 2.6 3.8 5.6 3.8 9s-1.2 6.4-3.8 9c-2.6-2.6-3.8-5.6-3.8-9S9.4 5.6 12 3z" /></svg>
+        </a>
       </div>
-      <div class="shot"><div class="phone"><img src="img/3-projection.webp" alt="Market projection: items to buy and the estimated total of the next trip"></div></div>
-    </div>
-  </section>
+      <p class="legal">Made by Mikael David. Repooor is open source under the MIT license. Receipt scanning reads Brazilian electronic receipts (NFC-e).</p>
+      <div class="giant" aria-hidden="true">Repooor</div>
+    </footer>
 
-  <section class="soft">
-    <div class="wrap row">
-      <div class="text">
-        <div class="eyebrow">Spending</div>
-        <h2>See where the money goes.</h2>
-        <p>This month's spending by category, the products you buy most, how often you shop, and the price history of each product.</p>
-      </div>
-      <div class="shot"><div class="phone"><img src="img/5-analytics.webp" alt="Spending this month and consumption by category"></div></div>
+    <div class="buddy" id="buddy">
+      <button class="mark-hit" type="button" id="mark-hit" aria-label="Repooor: make the icon jump">
+        <span class="mark-hop" id="mark-hop"><span class="mark3d" id="mark3d"></span></span>
+      </button>
+      <span class="mark-shadow" id="mark-shadow"></span>
     </div>
-  </section>
 
-  <section class="built" id="built">
-    <div class="wrap">
-      <div class="eyebrow" style="text-align:center">How it's built</div>
-      <h2>Small app, real engineering.</h2>
-      <p class="sub">Flutter, Riverpod and sqflite, organized in clean layers, with over 500 tests.</p>
-      <div class="grid">
-        <div class="cell"><b>Offline first</b><p>Data lives on the phone. Every write is queued and backed up to Appwrite when there is signal; permanent errors are kept apart from transient ones.</p></div>
-        <div class="cell"><b>One parser per state</b><p>Receipts differ by state. A factory picks the parser from the QR; XML invoices go through a generic parser tested against a real one.</p></div>
-        <div class="cell"><b>Matching in Portuguese</b><p><code>ARROZ T1 5KG CAMIL</code> becomes the rice you already have: accents, units, plurals and synonyms are normalized before comparing.</p></div>
-        <div class="cell"><b>Migrations that keep data</b><p>Seven schema versions built on a phone with real data, some of them merging duplicate products as they migrate.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="soft end">
-    <div class="wrap">
-      <h2>Read the code.</h2>
-      <p class="lead" style="margin:16px auto 0">Repooor is open source under the MIT license.</p>
-      <div class="cta"><a class="btn btn-primary" href="https://github.com/MikaelDDavidd/repooor">View on GitHub</a></div>
-    </div>
-  </section>
-</main>
-
-<footer>
-  <div class="wrap">
-    <span>Repooor · MIT licensed</span>
-    <span>Made by <a href="https://mikaeldavid.dev">Mikael David</a></span>
-  </div>
-</footer>
-</body>
+    <script src="app.js?v=1"></script>
+    <script src="site.js?v=1"></script>
+  </body>
 </html>
