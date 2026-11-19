@@ -306,18 +306,9 @@
     { passive: true },
   );
 
-  let lastGesture = 0;
-  function anticipate(direction) {
-    const now = performance.now();
-    const fresh = now - lastGesture > 220;
-    lastGesture = now;
-    if (!fresh || !direction || flying || !introDone) return;
-    const next = perches[perches.indexOf(perch) + direction];
-    if (!next) return;
-    const r = next.getBoundingClientRect();
-    if (r.top > innerHeight * 1.15 || r.bottom < -innerHeight * 0.15) return;
-    flyTo(next);
-  }
+  // O pulo não é antecipado: com o snap, um gesto curto devolve a página à mesma seção e a cesta
+  // ficaria presa fora da tela. Ela estica na hora (feel) e só pula quando a seção muda de fato.
+  const anticipate = () => {};
   window.addEventListener(
     "wheel",
     (event) => {
@@ -349,6 +340,12 @@
     },
     { passive: true },
   );
+
+  // Ao fim de cada rolagem (inclusive o snap voltando), a cesta confere o poleiro.
+  window.addEventListener("scrollend", () => {
+    settle();
+    check();
+  });
 
   let checkQueued = false;
   window.addEventListener(
