@@ -94,11 +94,13 @@
     layer.style.transform = `translateZ(${(-i + (LAYERS - 1) / 2) * GAP}px)${i === LAYERS - 1 ? " rotateY(180deg)" : ""}`;
     mark.append(layer);
   }
-  const pose = { ry: 0, rx: -8, y: 0, sx: 1, sy: 1, extra: 0 };
+  const pose = { ry: 0, rx: -8, y: 0, sx: 1, sy: 1, extra: 0, rz: 0 };
+  // A cesta balança pela alça (pivô acima do ícone), como uma cesta carregada na mão.
+  markHop.style.transformOrigin = "50% -40px";
   const aim = { x: 0, y: 0, on: false };
   function renderMark() {
     mark.style.transform = `rotateX(${pose.rx}deg) rotateY(${pose.ry + pose.extra}deg)`;
-    markHop.style.transform = `translateY(${pose.y}px) scale(${pose.sx}, ${pose.sy})`;
+    markHop.style.transform = `translateY(${pose.y}px) rotate(${pose.rz}deg) scale(${pose.sx}, ${pose.sy})`;
     const height = Math.min(1, -pose.y / 70);
     markShadow.style.transform = `scale(${1 - 0.45 * height})`;
     markShadow.style.opacity = String(1 - 0.6 * height);
@@ -119,17 +121,16 @@
       const air = (now) => {
         const t = Math.min(1, (now - start) / duration);
         pose.y = -4 * peak * t * (1 - t);
-        pose.extra = from + 360 * (1 - (1 - t) ** 2);
+        pose.rz = 10 * Math.sin(t * Math.PI * 2);
         renderMark();
         if (t < 1) {
           requestAnimationFrame(air);
           return;
         }
         pose.y = 0;
-        pose.extra = 0;
         pose.sx = 1.14;
         pose.sy = 0.84;
-        spring(pose, { sx: 1, sy: 1 }, { k: 320, c: 11, onUpdate: renderMark, onDone: () => (hopping = false) });
+        spring(pose, { sx: 1, sy: 1, rz: 0 }, { k: 320, c: 11, onUpdate: renderMark, onDone: () => (hopping = false) });
       };
       requestAnimationFrame(air);
     }, 150);
@@ -166,7 +167,7 @@
       const dist = Math.hypot(to0.x - from.x, to0.y - from.y);
       const duration = Math.min(980, 520 + dist * 0.22);
       const arc = Math.max(70, Math.min(260, 90 + dist * 0.18));
-      const turns = from.y < to0.y ? 360 : -360;
+      const dir = Math.abs(to0.x - from.x) > 30 ? Math.sign(to0.x - from.x) : from.y < to0.y ? 1 : -1;
       spring(pose, { sx: 0.92, sy: 1.1 }, { k: 300, c: 20, onUpdate: renderMark });
       const frame = (now) => {
         const to = spot(perch);
@@ -175,22 +176,78 @@
         place.x = from.x + (to.x - from.x) * e;
         place.y = from.y + (to.y - from.y) * e - arc * 4 * t * (1 - t);
         place.s = from.s + (to.s - from.s) * e;
-        pose.extra = turns * e;
+        pose.rz = dir * 18 * Math.sin(Math.PI * t);
         renderBuddy();
         renderMark();
         if (t < 1) return requestAnimationFrame(frame);
-        pose.extra = 0;
         pose.sx = 1.16;
         pose.sy = 0.82;
-        spring(pose, { sx: 1, sy: 1 }, { k: 320, c: 11, onUpdate: renderMark });
+        pose.rz = -dir * 14;
+        // Pousa e oscila como pêndulo até parar.
+        spring(pose, { sx: 1, sy: 1, rz: 0 }, { k: 110, c: 5, onUpdate: renderMark });
         flying = false;
         hopping = false;
         settle();
+        restock(perches.indexOf(perch));
         check();
       };
       requestAnimationFrame(frame);
     }, 110);
   }
+  // ---------- A cesta se enche: o selo de "em falta" desce a cada seção e um produto cai nela ----------
+
+  const MISSING = [6, 4, 2, 0];
+  const ITEMS = [
+    ["#E5483B", "M12 7.5c-1.2-1.1-2.7-1.6-4.3-1.3C4.6 6.8 3 9.8 3.6 13.4 4.3 17.5 7 21 9.6 21c.9 0 1.5-.5 2.4-.5s1.5.5 2.4.5c2.6 0 5.3-3.5 6-7.6.6-3.6-1-6.6-4.1-7.2-1.6-.3-3.1.2-4.3 1.3zM12 6.5c.2-2 1.4-3.6 3.6-4-.1 2-1.5 3.7-3.6 4z"],
+    ["#2D9CDB", "M8 2h8v3l2 3v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8l2-3V2zm.5 7v3h7V9h-7z"],
+    ["#8D6E63", "M18.5 3H6c-1.1 0-2 .9-2 2v5.71c0 3.83 2.95 7.18 6.78 7.29 3.96.12 7.22-3.06 7.22-7v-1h.5c1.93 0 3.5-1.57 3.5-3.5S20.43 3 18.5 3zM16 5v3H6V5h10zm2.5 3H18V5h.5c.83 0 1.5.67 1.5 1.5S19.33 8 18.5 8zM4 19h16v2H4z"],
+    ["#EE8B30", "M12 22c-.5 0-1-.4-1-1v-6.3C8.1 14.2 6 11.6 6 8.5V5l2 1c1.7.8 3 2.3 3.6 4.1h.8C13 8.3 14.3 6.8 16 6l2-1v3.5c0 3.1-2.1 5.7-5 6.2V21c0 .6-.5 1-1 1z"],
+  ];
+  const badge = document.createElement("span");
+  badge.className = "miss-badge";
+  badge.innerHTML = '<span class="roll" id="miss-n"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>';
+  markHop.append(badge);
+  const missN = badge.querySelector("#miss-n");
+  let missing = MISSING[0];
+  setRoll(missN, String(missing));
+  function dropItem(k) {
+    const [color, d] = ITEMS[k % ITEMS.length];
+    const item = document.createElement("span");
+    item.className = "drop";
+    item.style.background = color;
+    item.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg>`;
+    markHop.append(item);
+    const x = (k % 2 ? 1 : -1) * (8 + 10 * Math.random());
+    item
+      .animate(
+        [
+          { transform: `translate(${x}px, -190px) rotate(${-40 * Math.sign(x)}deg) scale(1)`, opacity: 0 },
+          { opacity: 1, offset: 0.15 },
+          { transform: `translate(${x * 0.3}px, -30px) rotate(${10 * Math.sign(x)}deg) scale(.95)`, opacity: 1, offset: 0.78 },
+          { transform: "translate(0, 6px) rotate(0) scale(.25)", opacity: 0 },
+        ],
+        { duration: 700, easing: "cubic-bezier(.5,0,.75,0)" },
+      )
+      .finished.then(() => {
+        item.remove();
+        pose.sx = 1.1;
+        pose.sy = 0.88;
+        spring(pose, { sx: 1, sy: 1 }, { k: 360, c: 12, onUpdate: renderMark });
+      });
+  }
+  function restock(index) {
+    const want = MISSING[Math.max(0, Math.min(MISSING.length - 1, index))];
+    if (want === missing) return;
+    const down = want < missing;
+    if (down && !reduce) for (let k = 0; k < (missing - want) / 2; k++) setTimeout(() => dropItem(index + k), 120 + k * 260);
+    setTimeout(() => {
+      missing = want;
+      badge.classList.toggle("done", missing === 0);
+      if (missing > 0) setRoll(missN, String(missing), { direction: down ? -1 : 1 });
+      badge.animate([{ transform: "translateZ(40px) scale(1)" }, { transform: "translateZ(40px) scale(1.25)" }, { transform: "translateZ(40px) scale(1)" }], { duration: 360, easing: "ease-out" });
+    }, down ? 820 : 0);
+  }
+
   // Pula quando o centro do próximo poleiro passa de 86% da altura da tela (regra do Hatchling).
   function pick() {
     let best = perches[0];
@@ -279,7 +336,7 @@
     const t0 = performance.now();
     const idle = (now) => {
       const t = (now - t0) / 1000;
-      const wantY = aim.on ? aim.x * 34 : 24 * Math.sin(t * 0.9);
+      const wantY = aim.on ? aim.x * 30 : 16 * Math.sin(t * 0.8);
       const wantX = aim.on ? -8 - aim.y * 18 : -8 + 4 * Math.sin(t * 0.7);
       pose.ry += (wantY - pose.ry) * 0.08;
       pose.rx += (wantX - pose.rx) * 0.08;

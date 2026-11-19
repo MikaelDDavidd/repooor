@@ -1659,3 +1659,60 @@ footer {
 html.intro-on body {
   overflow: hidden;
 }
+
+/* Selo de itens em falta no ícone (o badge vermelho do app) e os produtos que caem na cesta. */
+.miss-badge {
+  position: absolute;
+  left: 46px;
+  top: -86px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  min-width: 38px;
+  height: 38px;
+  padding: 0 9px;
+  border-radius: 19px;
+  background: #d32f2f;
+  box-shadow: 0 0 0 4px #fff, 0 8px 18px rgba(211, 47, 47, 0.35);
+  font-family: Roboto, sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  transform: translateZ(40px);
+  transition: background 400ms var(--std), box-shadow 400ms var(--std);
+}
+.miss-badge svg {
+  display: none;
+  width: 24px;
+  height: 24px;
+  fill: #fff;
+}
+.miss-badge.done {
+  background: #2c7a48;
+  box-shadow: 0 0 0 4px #fff, 0 8px 18px rgba(44, 122, 72, 0.35);
+}
+.miss-badge.done .roll {
+  display: none;
+}
+.miss-badge.done svg {
+  display: block;
+}
+.drop {
+  position: absolute;
+  left: -20px;
+  top: -40px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  box-shadow: 0 6px 14px rgba(24, 23, 37, 0.2);
+  pointer-events: none;
+}
+.drop svg {
+  width: 24px;
+  height: 24px;
+  fill: #fff;
+}
