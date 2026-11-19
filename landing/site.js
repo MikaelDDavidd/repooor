@@ -276,6 +276,36 @@
   }
   // A cesta já sai no primeiro movimento de rolagem (roda, trackpad, teclado ou dedo), na direção
   // do gesto, sem esperar a próxima seção chegar a 86% da tela. O snap leva a página até lá.
+  // Antecipação: enquanto a roda, o trackpad ou o dedo se mexem, a cesta estica na direção do
+  // gesto, na proporção da força dele, e volta com mola quando o gesto para.
+  const leanEl = $("#mark-hit");
+  const lean = { a: 0 };
+  let leanDir = 1;
+  let leanTimer = 0;
+  function renderLean() {
+    const a = Math.min(0.42, Math.max(0, lean.a));
+    leanEl.style.transformOrigin = leanDir > 0 ? "50% 20%" : "50% 90%";
+    leanEl.style.transform = `translateY(${leanDir * a * 28}px) scale(${1 - a * 0.38}, ${1 + a * 0.8})`;
+  }
+  function feel(delta) {
+    if (reduce || !introDone || !delta) return;
+    leanDir = Math.sign(delta);
+    const target = Math.min(0.42, Math.abs(delta) / 240);
+    spring(lean, { a: Math.max(lean.a, target) }, { k: 340, c: 22, onUpdate: renderLean });
+    clearTimeout(leanTimer);
+    leanTimer = setTimeout(() => spring(lean, { a: 0 }, { k: 230, c: 9, onUpdate: renderLean }), 130);
+  }
+  let lastScroll = scrollY;
+  window.addEventListener(
+    "scroll",
+    () => {
+      const dy = scrollY - lastScroll;
+      lastScroll = scrollY;
+      if (Math.abs(dy) > 2) feel(dy * 2);
+    },
+    { passive: true },
+  );
+
   let lastGesture = 0;
   function anticipate(direction) {
     const now = performance.now();
@@ -288,10 +318,21 @@
     if (r.top > innerHeight * 1.15 || r.bottom < -innerHeight * 0.15) return;
     flyTo(next);
   }
-  window.addEventListener("wheel", (event) => Math.abs(event.deltaY) > 3 && anticipate(Math.sign(event.deltaY)), { passive: true });
+  window.addEventListener(
+    "wheel",
+    (event) => {
+      if (Math.abs(event.deltaY) <= 3) return;
+      feel(event.deltaY);
+      anticipate(Math.sign(event.deltaY));
+    },
+    { passive: true },
+  );
   window.addEventListener("keydown", (event) => {
     const dir = { ArrowDown: 1, PageDown: 1, " ": 1, ArrowUp: -1, PageUp: -1 }[event.key];
-    if (dir && !event.target.closest?.("input, textarea")) anticipate(event.key === " " && event.shiftKey ? -1 : dir);
+    if (!dir || event.target.closest?.("input, textarea")) return;
+    const d = event.key === " " && event.shiftKey ? -1 : dir;
+    feel(d * 200);
+    anticipate(d);
   });
   let touchY = null;
   window.addEventListener("touchstart", (event) => (touchY = event.touches[0].clientY), { passive: true });
@@ -300,6 +341,7 @@
     (event) => {
       if (touchY === null) return;
       const dy = touchY - event.touches[0].clientY;
+      feel(dy * 3);
       if (Math.abs(dy) > 24) {
         anticipate(Math.sign(dy));
         touchY = null;
