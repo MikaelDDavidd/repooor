@@ -551,7 +551,7 @@ h1 mark {
 
 /* O ícone do app é o "herói" da página: fica num poleiro de cada seção e pula entre eles (site.js). */
 .buddy {
-  position: absolute;
+  position: fixed;
   left: 0;
   top: 0;
   z-index: 30;

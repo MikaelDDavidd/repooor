@@ -143,7 +143,7 @@
   const scaleOf = (p) => +(innerWidth < 640 ? (p.dataset.scaleM ?? p.dataset.scale) : p.dataset.scale);
   const spot = (p) => {
     const r = p.getBoundingClientRect();
-    return { x: r.left + r.width / 2 + scrollX, y: r.top + r.height / 2 + scrollY, s: scaleOf(p) };
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2, s: scaleOf(p) };
   };
   const place = { x: 0, y: 0, s: 1 };
   let perch = perches[0];
@@ -160,6 +160,8 @@
     flying = true;
     hopping = true;
     const from = { ...place };
+    // Se o poleiro de origem já saiu da tela, a cesta entra pela borda em vez de voar escondida.
+    from.y = Math.max(-80, Math.min(innerHeight + 80, from.y));
     spring(pose, { sx: 1.14, sy: 0.82 }, { k: 420, c: 24, onUpdate: renderMark });
     setTimeout(() => {
       const t0 = performance.now();
@@ -235,17 +237,26 @@
         spring(pose, { sx: 1, sy: 1 }, { k: 360, c: 12, onUpdate: renderMark });
       });
   }
+  // O pouso só toca o efeito com a cesta na tela; se a pessoa passou rápido, espera ela aparecer.
+  let pendingRestock = -1;
+  const onScreen = () => place.y > 60 && place.y < innerHeight - 40;
   function restock(index) {
+    if (!onScreen()) {
+      pendingRestock = index;
+      return;
+    }
+    pendingRestock = -1;
     const want = MISSING[Math.max(0, Math.min(MISSING.length - 1, index))];
     if (want === missing) return;
     const down = want < missing;
-    if (down && !reduce) for (let k = 0; k < (missing - want) / 2; k++) setTimeout(() => dropItem(index + k), 120 + k * 260);
+    const drops = (missing - want) / 2;
+    if (down && !reduce) for (let k = 0; k < drops; k++) setTimeout(() => dropItem(index + k), 120 + k * 300);
     setTimeout(() => {
       missing = want;
       badge.classList.toggle("done", missing === 0);
       if (missing > 0) setRoll(missN, String(missing), { direction: down ? -1 : 1 });
       badge.animate([{ transform: "translateZ(40px) scale(1)" }, { transform: "translateZ(40px) scale(1.25)" }, { transform: "translateZ(40px) scale(1)" }], { duration: 360, easing: "ease-out" });
-    }, down ? 820 : 0);
+    }, down ? 820 + Math.max(0, drops - 1) * 300 : 0);
   }
 
   // Pula quando o centro do próximo poleiro passa de 86% da altura da tela (regra do Hatchling).
@@ -271,6 +282,8 @@
       checkQueued = true;
       requestAnimationFrame(() => {
         checkQueued = false;
+        settle();
+        if (!flying && pendingRestock >= 0 && onScreen()) restock(pendingRestock);
         check();
       });
     },
