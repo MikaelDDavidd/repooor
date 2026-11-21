@@ -48,3 +48,8 @@ app.*.map.json
 .flutter-plugins
 .packages
 pubspec.lock
+
+CLAUDE.md
+AGENTS.md
+.claude/
+.mcp.json
