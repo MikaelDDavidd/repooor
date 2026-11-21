@@ -49,3 +49,8 @@ app.*.map.json
 .packages
 pubspec.lock
 .netlify/
+
+CLAUDE.md
+AGENTS.md
+.claude/
+.mcp.json
